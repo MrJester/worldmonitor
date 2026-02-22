@@ -104,6 +104,7 @@ import { trackEvent, trackPanelView, trackVariantSwitch, trackThemeChanged, trac
 import { invokeTauri } from '@/services/tauri-bridge';
 import { getCountryAtCoordinates, hasCountryGeometry, isCoordinateInCountry, preloadCountryGeometry } from '@/services/country-geometry';
 import { initI18n, t, changeLanguage } from '@/services/i18n';
+import { getFeedsForRegion } from '@/config/feed-regions';
 
 import type { MarketData, ClusteredEvent } from '@/types';
 import type { PredictionMarket } from '@/services/prediction';
@@ -2032,7 +2033,6 @@ export class App {
    * Filter news panels to show only feeds relevant to the selected region
    */
   private filterNewsPanelsByRegion(region: import('@/config/geographic-regions').GeographicRegion): void {
-    const { getFeedsForRegion } = require('@/config/feed-regions');
     const allowedSources = getFeedsForRegion(region.id, region.countryCodes);
 
     // Filter all news items if not global
