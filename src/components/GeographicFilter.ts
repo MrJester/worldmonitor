@@ -11,7 +11,6 @@ export class GeographicFilter {
   private container: HTMLElement;
   private selectElement: HTMLSelectElement;
   private searchInput: HTMLInputElement | null = null;
-  private dropdownContainer: HTMLDivElement | null = null;
   private currentRegionId: string = 'global';
   private onChangeCallback?: (event: GeographicFilterChangeEvent) => void;
   private isOpen: boolean = false;
@@ -24,7 +23,6 @@ export class GeographicFilter {
     this.render();
     this.selectElement = this.container.querySelector('select')!;
     this.searchInput = this.container.querySelector('.geo-search-input');
-    this.dropdownContainer = this.container.querySelector('.geo-dropdown-container');
     this.attachListeners();
   }
 
@@ -134,7 +132,7 @@ export class GeographicFilter {
     return html;
   }
 
-  private buildContinentSection(continentId: string, continentLabel: string, countries: Array<{countryId: string, label: string, children: string[]}>): string {
+  private buildContinentSection(continentId: string, _continentLabel: string, countries: Array<{countryId: string, label: string, children: string[]}>): string {
     let html = '';
     const continentRegion = getRegionById(continentId);
 
