@@ -81,12 +81,18 @@ export class LiveWebcamsPanel extends Panel {
     }
 
     // Apply geographic filter (global filter dropdown)
-    if (this.geographicFilter) {
+    if (this.geographicFilter && this.geographicFilter.id !== 'global') {
       const { cities, countryCodes } = this.geographicFilter;
       if (cities && cities.length > 0) {
         feeds = feeds.filter(f => {
           const cityLower = f.city.toLowerCase();
-          return cities.some(c => cityLower.includes(c.toLowerCase()) || c.toLowerCase().includes(cityLower));
+          const countryLower = f.country.toLowerCase();
+          return cities.some(c => {
+            const searchTerm = c.toLowerCase();
+            return cityLower.includes(searchTerm) ||
+                   searchTerm.includes(cityLower) ||
+                   countryLower.includes(searchTerm);
+          });
         });
       } else if (countryCodes && countryCodes.length > 0) {
         // Map country codes to webcam regions (simplified)
