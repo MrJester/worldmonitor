@@ -117,22 +117,17 @@ export class Panel {
 
     this.header.appendChild(headerLeft);
 
-    const headerRight = document.createElement('div');
-    headerRight.className = 'panel-header-right';
-
     this.statusBadgeEl = document.createElement('span');
     this.statusBadgeEl.className = 'panel-data-badge';
     this.statusBadgeEl.style.display = 'none';
-    headerRight.appendChild(this.statusBadgeEl);
+    this.header.appendChild(this.statusBadgeEl);
 
     if (options.showCount) {
       this.countEl = document.createElement('span');
       this.countEl.className = 'panel-count';
       this.countEl.textContent = '0';
-      headerRight.appendChild(this.countEl);
+      this.header.appendChild(this.countEl);
     }
-
-    this.header.appendChild(headerRight);
 
     this.content = document.createElement('div');
     this.content.className = 'panel-content';
