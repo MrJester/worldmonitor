@@ -181,6 +181,8 @@ export const SOURCE_TIERS: Record<string, number> = {
   'Contxto (LATAM)': 3,
   'Brazil Tech News': 3,
   'Mexico Tech News': 3,
+  'Mexico News Daily': 2,
+  'Vallarta Daily': 3,
   'LATAM Fintech': 3,
   // Africa & MENA
   'Disrupt Africa': 3,
@@ -594,6 +596,9 @@ const FULL_FEEDS: Record<string, Feed[]> = {
     { name: 'Folha de S.Paulo', url: rss('https://feeds.folha.uol.com.br/emcimadahora/rss091.xml'), lang: 'pt' },
     { name: 'El Tiempo', url: rss('https://www.eltiempo.com/rss/mundo_latinoamerica.xml'), lang: 'es' },
     { name: 'El Universal', url: rss('https://www.eluniversal.com.mx/rss.xml'), lang: 'es' },
+    { name: 'Mexico News Daily', url: rss('https://mexiconewsdaily.com/feed/') },
+    { name: 'Vallarta Daily', url: rss('https://www.vallartadaily.com/feed/') },
+    { name: 'Puerto Vallarta News', url: rss('https://news.google.com/rss/search?q="Puerto+Vallarta"+when:7d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'La Silla Vacía', url: rss('https://www.lasillavacia.com/rss') },
   ],
   asia: [

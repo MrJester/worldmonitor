@@ -92,6 +92,7 @@ export const FEEDS: Record<string, Feed[]> = {
     { name: 'Disrupt Africa', url: rss('https://disrupt-africa.com/feed/') },
     { name: 'LAVCA (LATAM)', url: rss('https://lavca.org/feed/') },
     { name: 'Contxto (LATAM)', url: rss('https://contxto.com/feed/') },
+    { name: 'Mexico Tech News', url: rss('https://news.google.com/rss/search?q=site:mexiconewsdaily.com+technology+OR+startup+when:7d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'Inc42 (India)', url: rss('https://inc42.com/feed/') },
     { name: 'YourStory', url: rss('https://yourstory.com/feed') },
   ],

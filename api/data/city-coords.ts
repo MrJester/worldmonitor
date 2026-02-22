@@ -102,6 +102,7 @@ export const CITY_COORDS: Record<string, CityCoord> = {
   'monterrey': { lat: 25.6866, lng: -100.3161, country: 'Mexico' },
   'tijuana': { lat: 32.5149, lng: -117.0382, country: 'Mexico' },
   'cancun': { lat: 21.1619, lng: -86.8515, country: 'Mexico' },
+  'puerto vallarta': { lat: 20.6204, lng: -105.2294, country: 'Mexico' },
   'panama city': { lat: 8.9824, lng: -79.5199, country: 'Panama' },
   'san jose cr': { lat: 9.9281, lng: -84.0907, country: 'Costa Rica' },
 
