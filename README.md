@@ -1155,7 +1155,7 @@ Open [http://localhost:3000](http://localhost:3000)
 The dashboard works without any API keys — panels for unconfigured services simply won't appear. For full functionality, copy the example file and fill in the keys you need:
 
 ```bash
-cp .env.example .env.local
+cp .env .env.local
 ```
 
 The `.env.example` file documents every variable with descriptions and registration links, organized by deployment target (Vercel vs Railway). Key groups:
@@ -1172,7 +1172,7 @@ The `.env.example` file documents every variable with descriptions and registrat
 | **UI**            | `VITE_VARIANT`, `VITE_MAP_INTERACTION_MODE` (`flat` or `3d`, default `3d`) | N/A                                        |
 | **Observability** | `VITE_SENTRY_DSN` (optional, empty disables reporting)                     | N/A                                        |
 
-See [`.env.example`](./.env.example) for the complete list with registration links.
+See [`.env.example`](.env) for the complete list with registration links.
 
 ---
 
@@ -1197,7 +1197,7 @@ To run everything locally (frontend + edge functions):
 
 ```bash
 npm install -g vercel
-cp .env.example .env.local   # Add your API keys
+cp .env .env.local   # Add your API keys
 vercel dev                   # Starts on http://localhost:3000
 ```
 

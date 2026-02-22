@@ -682,6 +682,11 @@ export class LiveNewsPanel extends Panel {
     this.syncPlayerState();
   }
 
+  public setGeographicFilter(_region: import('@/config/geographic-regions').GeographicRegion | null): void {
+    // Live news channels are global and don't currently support geographic filtering
+    // This method is provided for consistency with other panels
+  }
+
   public destroy(): void {
     if (this.idleTimeout) {
       clearTimeout(this.idleTimeout);

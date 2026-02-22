@@ -81,6 +81,7 @@ import {
   PopulationExposurePanel,
   InvestmentsPanel,
   LanguageSelector,
+  GeographicFilter,
 } from '@/components';
 import type { SearchResult } from '@/components/SearchModal';
 import { collectStoryData } from '@/services/story-data';
@@ -158,6 +159,7 @@ export class App {
   private statusPanel: StatusPanel | null = null;
   private exportPanel: ExportPanel | null = null;
   private languageSelector: LanguageSelector | null = null;
+  private geographicFilter: GeographicFilter | null = null;
   private searchModal: SearchModal | null = null;
   private mobileWarningModal: MobileWarningModal | null = null;
   private pizzintIndicator: PizzIntIndicator | null = null;
@@ -1871,18 +1873,7 @@ export class App {
             <span class="status-dot"></span>
             <span>${t('header.live')}</span>
           </div>
-          <div class="region-selector">
-            <select id="regionSelect" class="region-select">
-              <option value="global">${t('components.deckgl.views.global')}</option>
-              <option value="america">${t('components.deckgl.views.americas')}</option>
-              <option value="mena">${t('components.deckgl.views.mena')}</option>
-              <option value="eu">${t('components.deckgl.views.europe')}</option>
-              <option value="asia">${t('components.deckgl.views.asia')}</option>
-              <option value="latam">${t('components.deckgl.views.latam')}</option>
-              <option value="africa">${t('components.deckgl.views.africa')}</option>
-              <option value="oceania">${t('components.deckgl.views.oceania')}</option>
-            </select>
-          </div>
+          <div id="geoFilterContainer"></div>
         </div>
         <div class="header-right">
           <button class="search-btn" id="searchBtn"><kbd>⌘K</kbd> ${t('header.search')}</button>
@@ -2024,6 +2015,27 @@ export class App {
   }
 
   /**
+   * Handle geographic filter changes
+   */
+  private onGeographicFilterChange(region: import('@/config/geographic-regions').GeographicRegion): void {
+    console.log('[App] Applying geographic filter:', region.label, region.type);
+
+    // Filter webcams panel if it exists
+    if (this.panels['live-webcams']) {
+      const webcamsPanel = this.panels['live-webcams'] as LiveWebcamsPanel;
+      webcamsPanel.setGeographicFilter?.(region);
+    }
+
+    // Filter live news panel if it exists
+    if (this.panels['live-news']) {
+      const liveNewsPanel = this.panels['live-news'] as LiveNewsPanel;
+      liveNewsPanel.setGeographicFilter?.(region);
+    }
+
+    // TODO: Filter other panels as needed (news feeds, data sources, etc.)
+  }
+
+  /**
    * Clean up resources (for HMR/testing)
    */
   public destroy(): void {
@@ -2084,6 +2096,10 @@ export class App {
     // Clean up map and AIS
     this.map?.destroy();
     disconnectAisStream();
+
+    // Clean up geographic filter
+    this.geographicFilter?.destroy();
+    this.geographicFilter = null;
   }
 
   private createPanels(): void {
@@ -2690,11 +2706,21 @@ export class App {
       document.addEventListener('fullscreenchange', this.boundFullscreenHandler);
     }
 
-    // Region selector
-    const regionSelect = document.getElementById('regionSelect') as HTMLSelectElement;
-    regionSelect?.addEventListener('change', () => {
-      this.map?.setView(regionSelect.value as MapView);
-      trackMapViewChange(regionSelect.value);
+    // Geographic filter
+    this.geographicFilter = new GeographicFilter('geoFilterContainer', (event) => {
+      console.log('[App] Geographic filter changed:', event.regionId, event.region.label);
+
+      // Auto-zoom map to region
+      const { viewport } = event.region;
+      this.map?.setCenter(viewport.latitude, viewport.longitude, viewport.zoom);
+
+      // Notify panels about the filter change
+      this.onGeographicFilterChange(event.region);
+
+      trackEvent('geographic_filter_changed', {
+        regionId: event.regionId,
+        regionType: event.region.type
+      });
     });
 
     // Language selector

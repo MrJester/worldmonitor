@@ -414,6 +414,16 @@
     }
   },
   "components": {
+    "geoFilter": {
+      "continents": "Continents",
+      "northAmerica": "North America",
+      "usa": "United States",
+      "mexico": "Mexico",
+      "canada": "Canada",
+      "middleEast": "Middle East",
+      "europe": "Europe",
+      "asia": "Asia & Pacific"
+    },
     "webcams": {
       "regions": {
         "all": "ALL",

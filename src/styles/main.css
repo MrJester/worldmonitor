@@ -515,6 +515,65 @@ canvas,
   border-color: var(--green);
 }
 
+/* Geographic Filter */
+.geographic-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.geo-icon {
+  color: var(--text-dim);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.geo-select {
+  padding: 4px 24px 4px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+  min-width: 160px;
+  transition: all 0.15s ease;
+}
+
+.geo-select:hover {
+  border-color: var(--green);
+  background: var(--surface);
+}
+
+.geo-select:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(68, 170, 68, 0.1);
+}
+
+.geo-select optgroup {
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface);
+  padding: 6px 0;
+}
+
+.geo-select option {
+  padding: 6px 12px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.geo-select option:hover {
+  background: var(--surface-hover);
+}
+
 .header-center {
   display: flex;
   gap: 8px;

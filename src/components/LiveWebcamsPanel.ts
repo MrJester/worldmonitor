@@ -61,6 +61,7 @@ export class LiveWebcamsPanel extends Panel {
   private boundVisibilityHandler!: () => void;
   private readonly IDLE_PAUSE_MS = 5 * 60 * 1000;
   private isIdle = false;
+  private geographicFilter: import('@/config/geographic-regions').GeographicRegion | null = null;
 
   constructor() {
     super({ id: 'live-webcams', title: t('panels.liveWebcams') });
@@ -72,8 +73,49 @@ export class LiveWebcamsPanel extends Panel {
   }
 
   private get filteredFeeds(): WebcamFeed[] {
-    if (this.regionFilter === 'all') return WEBCAM_FEEDS;
-    return WEBCAM_FEEDS.filter(f => f.region === this.regionFilter);
+    let feeds = WEBCAM_FEEDS;
+
+    // Apply local region filter (toolbar buttons)
+    if (this.regionFilter !== 'all') {
+      feeds = feeds.filter(f => f.region === this.regionFilter);
+    }
+
+    // Apply geographic filter (global filter dropdown)
+    if (this.geographicFilter) {
+      const { cities, countryCodes } = this.geographicFilter;
+      if (cities && cities.length > 0) {
+        feeds = feeds.filter(f => {
+          const cityLower = f.city.toLowerCase();
+          return cities.some(c => cityLower.includes(c.toLowerCase()) || c.toLowerCase().includes(cityLower));
+        });
+      } else if (countryCodes && countryCodes.length > 0) {
+        // Map country codes to webcam regions (simplified)
+        const regionMapping: Record<string, WebcamRegion> = {
+          'US': 'americas',
+          'MX': 'americas',
+          'CA': 'americas',
+          'IL': 'middle-east',
+          'IR': 'middle-east',
+          'SA': 'middle-east',
+          'AE': 'middle-east',
+          'UA': 'europe',
+          'RU': 'europe',
+          'FR': 'europe',
+          'GB': 'europe',
+          'CN': 'asia',
+          'TW': 'asia',
+          'JP': 'asia',
+          'KR': 'asia',
+          'AU': 'asia',
+        };
+        const allowedRegions = new Set(countryCodes.map(cc => regionMapping[cc]).filter(Boolean));
+        if (allowedRegions.size > 0) {
+          feeds = feeds.filter(f => allowedRegions.has(f.region));
+        }
+      }
+    }
+
+    return feeds;
   }
 
   private static readonly ALL_GRID_IDS = ['jerusalem', 'tehran', 'kyiv', 'washington'];
@@ -328,6 +370,18 @@ export class LiveWebcamsPanel extends Panel {
     if (this.isVisible && !this.isIdle) {
       this.render();
     }
+  }
+
+  public setGeographicFilter(region: import('@/config/geographic-regions').GeographicRegion | null): void {
+    this.geographicFilter = region;
+    // Reset to 'all' when a specific filter is applied
+    if (region && region.id !== 'global') {
+      this.regionFilter = 'all';
+      this.toolbar?.querySelectorAll('.webcam-region-btn').forEach(btn => {
+        (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.region === 'all');
+      });
+    }
+    this.render();
   }
 
   public destroy(): void {
