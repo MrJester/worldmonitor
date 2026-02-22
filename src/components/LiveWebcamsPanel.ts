@@ -427,7 +427,14 @@ export class LiveWebcamsPanel extends Panel {
         (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.region === 'all');
       });
     }
-    this.render();
+    // Force render when filter changes - bypass visibility/idle checks
+    const feeds = this.filteredFeeds;
+    if (feeds.length > 0 && !feeds.includes(this.activeFeed)) {
+      this.activeFeed = feeds[0]!;
+    }
+    if (!this.isIdle) {
+      this.render();
+    }
   }
 
   public destroy(): void {
