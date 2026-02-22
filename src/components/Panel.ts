@@ -132,17 +132,6 @@ export class Panel {
       headerRight.appendChild(this.countEl);
     }
 
-    // Add close button
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'panel-close-btn';
-    closeBtn.setAttribute('aria-label', 'Close panel');
-    closeBtn.innerHTML = '×';
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.hide();
-    });
-    headerRight.appendChild(closeBtn);
-
     this.header.appendChild(headerRight);
 
     this.content = document.createElement('div');
