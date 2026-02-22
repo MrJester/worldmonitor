@@ -35,14 +35,13 @@ import { enrichEventsWithExposure } from '@/services/population-exposure';
 import { buildMapUrl, debounce, loadFromStorage, parseMapUrlState, saveToStorage, ExportPanel, getCircuitBreakerCooldownInfo, isMobileDevice, setTheme, getCurrentTheme } from '@/utils';
 import { reverseGeocode } from '@/utils/reverse-geocode';
 import { CountryBriefPage } from '@/components/CountryBriefPage';
-import { maybeShowDownloadBanner } from '@/components/DownloadBanner';
-import { mountCommunityWidget } from '@/components/CommunityWidget';
+// Removed: import { maybeShowDownloadBanner } from '@/components/DownloadBanner';
+// Removed: import { mountCommunityWidget } from '@/components/CommunityWidget';
 import { CountryTimeline, type TimelineEvent } from '@/components/CountryTimeline';
 import { escapeHtml } from '@/utils/sanitize';
 import type { ParsedMapUrlState } from '@/utils';
 import {
   MapContainer,
-  type MapView,
   type TimeRange,
   NewsPanel,
   MarketPanel,
@@ -101,7 +100,7 @@ import { isDesktopRuntime } from '@/services/runtime';
 import { IntelligenceServiceClient } from '@/generated/client/worldmonitor/intelligence/v1/service_client';
 import { ResearchServiceClient } from '@/generated/client/worldmonitor/research/v1/service_client';
 import { isFeatureAvailable } from '@/services/runtime-config';
-import { trackEvent, trackPanelView, trackVariantSwitch, trackThemeChanged, trackMapViewChange, trackMapLayerToggle, trackCountrySelected, trackCountryBriefOpened, trackSearchResultSelected, trackPanelToggled, trackUpdateShown, trackUpdateClicked, trackUpdateDismissed, trackCriticalBannerAction, trackDeeplinkOpened } from '@/services/analytics';
+import { trackEvent, trackPanelView, trackVariantSwitch, trackThemeChanged, trackMapLayerToggle, trackCountrySelected, trackCountryBriefOpened, trackSearchResultSelected, trackPanelToggled, trackUpdateShown, trackUpdateClicked, trackUpdateDismissed, trackCriticalBannerAction, trackDeeplinkOpened } from '@/services/analytics';
 import { invokeTauri } from '@/services/tauri-bridge';
 import { getCountryAtCoordinates, hasCountryGeometry, isCoordinateInCountry, preloadCountryGeometry } from '@/services/country-geometry';
 import { initI18n, t, changeLanguage } from '@/services/i18n';
@@ -3507,8 +3506,8 @@ export class App {
 
     this.allNews = collectedNews;
     this.initialLoadComplete = true;
-    maybeShowDownloadBanner();
-    mountCommunityWidget();
+    // Removed: maybeShowDownloadBanner();
+    // Removed: mountCommunityWidget();
     // Temporal baseline: report news volume
     updateAndCheck([
       { type: 'news', region: 'global', count: collectedNews.length },

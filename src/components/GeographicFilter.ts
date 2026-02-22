@@ -69,37 +69,37 @@ export class GeographicFilter {
     });
 
     // Build hierarchical optgroups
-    let html = groups.global.join('');
+    let html = (groups.global || []).join('');
 
-    if (groups.continents.length > 0) {
+    if ((groups.continents || []).length > 0) {
       html += `<optgroup label="── ${t('components.geoFilter.continents')} ──">`;
-      html += groups.continents.join('');
+      html += (groups.continents || []).join('');
       html += '</optgroup>';
     }
 
     // North America group
-    if (groups['north-america'].length > 0) {
+    if ((groups['north-america'] || []).length > 0) {
       html += `<optgroup label="── ${t('components.geoFilter.northAmerica')} ──">`;
-      html += groups['north-america'].join('');
+      html += (groups['north-america'] || []).join('');
 
       // USA nested
-      if (groups.usa.length > 0) {
+      if ((groups.usa || []).length > 0) {
         html += `<optgroup label="  └─ ${t('components.geoFilter.usa')}">`;
-        html += groups.usa.join('');
+        html += (groups.usa || []).join('');
         html += '</optgroup>';
       }
 
       // Mexico nested
-      if (groups.mexico.length > 0) {
+      if ((groups.mexico || []).length > 0) {
         html += `<optgroup label="  └─ ${t('components.geoFilter.mexico')}">`;
-        html += groups.mexico.join('');
+        html += (groups.mexico || []).join('');
         html += '</optgroup>';
       }
 
       // Canada nested
-      if (groups.canada.length > 0) {
+      if ((groups.canada || []).length > 0) {
         html += `<optgroup label="  └─ ${t('components.geoFilter.canada')}">`;
-        html += groups.canada.join('');
+        html += (groups.canada || []).join('');
         html += '</optgroup>';
       }
 
@@ -107,17 +107,17 @@ export class GeographicFilter {
     }
 
     // Middle East group
-    if (groups['middle-east'].length > 0) {
+    if ((groups['middle-east'] || []).length > 0) {
       html += `<optgroup label="── ${t('components.geoFilter.middleEast')} ──">`;
-      html += groups['middle-east'].join('');
+      html += (groups['middle-east'] || []).join('');
 
       // Add sub-regions
       ['israel', 'iran', 'saudi-arabia', 'uae'].forEach((parentId) => {
-        if (groups[parentId]?.length > 0) {
+        if ((groups[parentId] || []).length > 0) {
           const parent = getRegionById(parentId);
           if (parent) {
             html += `<optgroup label="  └─ ${escapeHtml(parent.label)}">`;
-            html += groups[parentId].join('');
+            html += (groups[parentId] || []).join('');
             html += '</optgroup>';
           }
         }
@@ -127,17 +127,17 @@ export class GeographicFilter {
     }
 
     // Europe group
-    if (groups.europe.length > 0) {
+    if ((groups.europe || []).length > 0) {
       html += `<optgroup label="── ${t('components.geoFilter.europe')} ──">`;
-      html += groups.europe.join('');
+      html += (groups.europe || []).join('');
 
       // Add sub-regions
       ['ukraine', 'russia', 'france', 'uk'].forEach((parentId) => {
-        if (groups[parentId]?.length > 0) {
+        if ((groups[parentId] || []).length > 0) {
           const parent = getRegionById(parentId);
           if (parent) {
             html += `<optgroup label="  └─ ${escapeHtml(parent.label)}">`;
-            html += groups[parentId].join('');
+            html += (groups[parentId] || []).join('');
             html += '</optgroup>';
           }
         }
@@ -147,17 +147,17 @@ export class GeographicFilter {
     }
 
     // Asia group
-    if (groups.asia.length > 0) {
+    if ((groups.asia || []).length > 0) {
       html += `<optgroup label="── ${t('components.geoFilter.asia')} ──">`;
-      html += groups.asia.join('');
+      html += (groups.asia || []).join('');
 
       // Add sub-regions
       ['china', 'taiwan', 'japan', 'south-korea', 'australia'].forEach((parentId) => {
-        if (groups[parentId]?.length > 0) {
+        if ((groups[parentId] || []).length > 0) {
           const parent = getRegionById(parentId);
           if (parent) {
             html += `<optgroup label="  └─ ${escapeHtml(parent.label)}">`;
-            html += groups[parentId].join('');
+            html += (groups[parentId] || []).join('');
             html += '</optgroup>';
           }
         }
