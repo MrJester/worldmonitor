@@ -521,6 +521,7 @@ canvas,
   align-items: center;
   gap: 6px;
   padding: 0 8px;
+  position: relative;
 }
 
 .geo-icon {
@@ -529,6 +530,147 @@ canvas,
   flex-shrink: 0;
 }
 
+.geo-custom-dropdown {
+  position: relative;
+  min-width: 200px;
+}
+
+.geo-dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 28px;
+}
+
+.geo-dropdown-button:hover {
+  border-color: var(--green);
+  background: var(--surface);
+}
+
+.geo-dropdown-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.geo-dropdown-arrow {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  transition: transform 0.2s ease;
+}
+
+.geo-dropdown-container {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.geo-search-container {
+  position: relative;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.geo-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.geo-search-input {
+  width: 100%;
+  padding: 6px 12px 6px 32px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.geo-search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(68, 170, 68, 0.1);
+}
+
+.geo-search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.geo-options-list {
+  overflow-y: auto;
+  max-height: 340px;
+  flex: 1;
+}
+
+.geo-option {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  white-space: pre;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.geo-option:hover {
+  background: var(--surface-hover);
+}
+
+.geo-option.selected {
+  background: rgba(68, 170, 68, 0.15);
+  color: var(--green);
+}
+
+.geo-option[data-level="0"] {
+  font-weight: 600;
+  padding: 10px 12px;
+}
+
+.geo-option[data-level="1"] {
+  padding-left: 20px;
+}
+
+.geo-option[data-level="2"] {
+  padding-left: 32px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.geo-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* Fallback select (hidden) */
 .geo-select {
   padding: 4px 24px 4px 8px;
   background: var(--bg);
