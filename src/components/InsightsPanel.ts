@@ -675,7 +675,7 @@ export class InsightsPanel extends Panel {
     return clusters.filter(cluster => {
       // Check if any article in the cluster mentions the region
       return cluster.allItems.some(item => {
-        const contentLower = `${item.title} ${item.description || ''}`.toLowerCase();
+        const contentLower = item.title.toLowerCase();
 
         // Check city names
         if (cities && cities.length > 0) {
