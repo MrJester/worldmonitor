@@ -427,13 +427,26 @@ export class LiveWebcamsPanel extends Panel {
   public setGeographicFilter(region: import('@/config/geographic-regions').GeographicRegion | null): void {
     console.log('[LiveWebcams] setGeographicFilter called with:', region?.label, region?.id);
     this.geographicFilter = region;
-    // Reset to 'all' when a specific filter is applied
+
+    // When a specific region is selected, determine which toolbar button to activate
     if (region && region.id !== 'global') {
+      // Map geographic regions to toolbar regions
+      const toolbarRegion = this.getToolbarRegionForGeographic(region);
+      if (toolbarRegion) {
+        this.regionFilter = toolbarRegion;
+        this.toolbar?.querySelectorAll('.webcam-region-btn').forEach(btn => {
+          (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.region === toolbarRegion);
+        });
+        console.log('[LiveWebcams] Set toolbar region to:', toolbarRegion);
+      }
+    } else {
+      // Reset to 'all' when global is selected
       this.regionFilter = 'all';
       this.toolbar?.querySelectorAll('.webcam-region-btn').forEach(btn => {
         (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.region === 'all');
       });
     }
+
     // Update active feed if needed
     const feeds = this.filteredFeeds;
     console.log('[LiveWebcams] Filtered feeds:', feeds.length, feeds.map(f => f.city));
@@ -446,6 +459,34 @@ export class LiveWebcamsPanel extends Panel {
     this.isVisible = true;
     this.render();
     this.isVisible = wasVisible;
+  }
+
+  /**
+   * Map geographic region to toolbar region button
+   */
+  private getToolbarRegionForGeographic(region: import('@/config/geographic-regions').GeographicRegion): RegionFilter | null {
+    const { countryCodes } = region;
+
+    if (!countryCodes || countryCodes.length === 0) {
+      return null;
+    }
+
+    // Map country codes to toolbar regions
+    const countryToRegion: Record<string, WebcamRegion> = {
+      'US': 'americas', 'MX': 'americas', 'CA': 'americas', 'BR': 'americas', 'AR': 'americas',
+      'IL': 'middle-east', 'IR': 'middle-east', 'SA': 'middle-east', 'AE': 'middle-east', 'JO': 'middle-east',
+      'UA': 'europe', 'RU': 'europe', 'FR': 'europe', 'GB': 'europe', 'DE': 'europe', 'IT': 'europe',
+      'CN': 'asia', 'TW': 'asia', 'JP': 'asia', 'KR': 'asia', 'AU': 'asia', 'IN': 'asia',
+    };
+
+    // Return the first matching region
+    for (const code of countryCodes) {
+      if (countryToRegion[code]) {
+        return countryToRegion[code];
+      }
+    }
+
+    return null;
   }
 
   public destroy(): void {
