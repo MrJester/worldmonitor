@@ -98,12 +98,17 @@ export class LiveWebcamsPanel extends Panel {
   private applyCascadingFilter(feeds: WebcamFeed[]): WebcamFeed[] {
     if (!this.geographicFilter) return feeds;
 
+    console.log('[LiveWebcams] applyCascadingFilter called with', feeds.length, 'feeds for region:', this.geographicFilter.label);
+
     // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
     const hierarchy = getRegionHierarchy(this.geographicFilter.id);
+    console.log('[LiveWebcams] Hierarchy:', hierarchy.map(r => r.label));
 
     // Try each level of the hierarchy from most specific to least specific
     for (const region of hierarchy) {
+      console.log('[LiveWebcams] Trying level:', region.label, 'cities:', region.cities, 'countryCodes:', region.countryCodes);
       const filtered = this.filterByRegion(feeds, region);
+      console.log('[LiveWebcams] Filtered result:', filtered.length, 'webcams');
       if (filtered.length > 0) {
         console.log(`[LiveWebcams] Found ${filtered.length} webcams at level: ${region.label}`);
         return filtered;
@@ -111,6 +116,7 @@ export class LiveWebcamsPanel extends Panel {
     }
 
     // If nothing found at any level, return empty
+    console.log('[LiveWebcams] No webcams found at any hierarchy level');
     return [];
   }
 
@@ -419,6 +425,7 @@ export class LiveWebcamsPanel extends Panel {
   }
 
   public setGeographicFilter(region: import('@/config/geographic-regions').GeographicRegion | null): void {
+    console.log('[LiveWebcams] setGeographicFilter called with:', region?.label, region?.id);
     this.geographicFilter = region;
     // Reset to 'all' when a specific filter is applied
     if (region && region.id !== 'global') {
@@ -429,11 +436,13 @@ export class LiveWebcamsPanel extends Panel {
     }
     // Update active feed if needed
     const feeds = this.filteredFeeds;
+    console.log('[LiveWebcams] Filtered feeds:', feeds.length, feeds.map(f => f.city));
     if (feeds.length > 0 && !feeds.includes(this.activeFeed)) {
       this.activeFeed = feeds[0]!;
     }
     // Force render by temporarily setting isVisible to true
     const wasVisible = this.isVisible;
+    console.log('[LiveWebcams] isVisible before render:', this.isVisible, 'isIdle:', this.isIdle);
     this.isVisible = true;
     this.render();
     this.isVisible = wasVisible;
