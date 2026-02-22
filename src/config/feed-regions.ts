@@ -3,6 +3,8 @@
  * Used for filtering news panels by geographic location.
  */
 
+import { getRegionHierarchy } from './geographic-regions';
+
 export interface FeedRegionMapping {
   source: string;
   countryCodes?: string[];  // ISO 3166-1 alpha-2
@@ -148,14 +150,13 @@ export const FEED_REGION_MAPPINGS: FeedRegionMapping[] = [
 /**
  * Get feeds that match a geographic region with cascading fallback
  */
-export function getFeedsForRegion(regionId: string, countryCodes?: string[]): Set<string> {
+export function getFeedsForRegion(regionId: string, _countryCodes?: string[]): Set<string> {
   // Global always shows all feeds
   if (regionId === 'global') {
     return new Set<string>();
   }
 
   // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
-  const { getRegionHierarchy } = require('@/config/geographic-regions');
   const hierarchy = getRegionHierarchy(regionId);
 
   // Try each level of the hierarchy from most specific to least specific

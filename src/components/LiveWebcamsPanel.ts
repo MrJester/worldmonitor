@@ -3,6 +3,8 @@ import { isDesktopRuntime, getRemoteApiBaseUrl } from '@/services/runtime';
 import { escapeHtml } from '@/utils/sanitize';
 import { t } from '../services/i18n';
 import { trackWebcamSelected, trackWebcamRegionFiltered } from '@/services/analytics';
+import { getRegionHierarchy } from '@/config/geographic-regions';
+import type { GeographicRegion } from '@/config/geographic-regions';
 
 type WebcamRegion = 'middle-east' | 'europe' | 'asia' | 'americas';
 
@@ -95,7 +97,6 @@ export class LiveWebcamsPanel extends Panel {
     if (!this.geographicFilter) return feeds;
 
     // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
-    const { getRegionHierarchy } = require('@/config/geographic-regions');
     const hierarchy = getRegionHierarchy(this.geographicFilter.id);
 
     // Try each level of the hierarchy from most specific to least specific
@@ -114,7 +115,7 @@ export class LiveWebcamsPanel extends Panel {
   /**
    * Filter feeds by a specific region
    */
-  private filterByRegion(feeds: WebcamFeed[], region: import('@/config/geographic-regions').GeographicRegion): WebcamFeed[] {
+  private filterByRegion(feeds: WebcamFeed[], region: GeographicRegion): WebcamFeed[] {
     const { cities, countryCodes } = region;
 
     // Try city matching first

@@ -11,6 +11,8 @@ import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
 import { SITE_VARIANT } from '@/config';
 import { getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
 import { t } from '@/services/i18n';
+import { getRegionHierarchy } from '@/config/geographic-regions';
+import type { GeographicRegion } from '@/config/geographic-regions';
 import type { ClusteredEvent, FocalPoint, MilitaryFlight } from '@/types';
 
 export class InsightsPanel extends Panel {
@@ -21,7 +23,7 @@ export class InsightsPanel extends Panel {
   private lastConvergenceZones: RegionalConvergence[] = [];
   private lastFocalPoints: FocalPoint[] = [];
   private lastMilitaryFlights: MilitaryFlight[] = [];
-  private geographicFilter: import('@/config/geographic-regions').GeographicRegion | null = null;
+  private geographicFilter: GeographicRegion | null = null;
   private lastClusters: ClusteredEvent[] = [];
   private static readonly BRIEF_COOLDOWN_MS = 120000; // 2 min cooldown (API has limits)
   private static readonly BRIEF_CACHE_KEY = 'summary:world-brief';
@@ -649,7 +651,6 @@ export class InsightsPanel extends Panel {
     }
 
     // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
-    const { getRegionHierarchy } = require('@/config/geographic-regions');
     const hierarchy = getRegionHierarchy(this.geographicFilter.id);
 
     // Try each level of the hierarchy from most specific to least specific
@@ -668,13 +669,13 @@ export class InsightsPanel extends Panel {
   /**
    * Filter clusters by a specific region
    */
-  private filterClustersByRegion(clusters: ClusteredEvent[], region: import('@/config/geographic-regions').GeographicRegion): ClusteredEvent[] {
+  private filterClustersByRegion(clusters: ClusteredEvent[], region: GeographicRegion): ClusteredEvent[] {
     const { countryCodes, cities, bounds } = region;
 
     return clusters.filter(cluster => {
       // Check if any article in the cluster mentions the region
-      return cluster.articles.some(article => {
-        const contentLower = `${article.title} ${article.description || ''}`.toLowerCase();
+      return cluster.allItems.some(item => {
+        const contentLower = `${item.title} ${item.description || ''}`.toLowerCase();
 
         // Check city names
         if (cities && cities.length > 0) {
@@ -691,21 +692,14 @@ export class InsightsPanel extends Panel {
           }
         }
 
-        // Check coordinates if available
-        if (bounds && cluster.location) {
-          const { latitude, longitude } = cluster.location;
-          if (
-            latitude >= bounds.south &&
-            latitude <= bounds.north &&
-            longitude >= bounds.west &&
-            longitude <= bounds.east
-          ) {
-            return true;
-          }
-        }
-
         return false;
-      });
+      }) ||
+      // Check coordinates if available
+      (bounds && cluster.lat !== undefined && cluster.lon !== undefined &&
+        cluster.lat >= bounds.south &&
+        cluster.lat <= bounds.north &&
+        cluster.lon >= bounds.west &&
+        cluster.lon <= bounds.east);
     });
   }
 
@@ -738,7 +732,7 @@ export class InsightsPanel extends Panel {
   /**
    * Set geographic filter and re-render insights
    */
-  public setGeographicFilter(region: import('@/config/geographic-regions').GeographicRegion | null): void {
+  public setGeographicFilter(region: GeographicRegion | null): void {
     this.geographicFilter = region;
 
     // Re-render with filtered data if we have cached clusters
