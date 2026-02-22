@@ -80,48 +80,85 @@ export class LiveWebcamsPanel extends Panel {
       feeds = feeds.filter(f => f.region === this.regionFilter);
     }
 
-    // Apply geographic filter (global filter dropdown)
+    // Apply geographic filter with cascading (global filter dropdown)
     if (this.geographicFilter && this.geographicFilter.id !== 'global') {
-      const { cities, countryCodes } = this.geographicFilter;
-      if (cities && cities.length > 0) {
-        feeds = feeds.filter(f => {
-          const cityLower = f.city.toLowerCase();
-          const countryLower = f.country.toLowerCase();
-          return cities.some(c => {
-            const searchTerm = c.toLowerCase();
-            return cityLower.includes(searchTerm) ||
-                   searchTerm.includes(cityLower) ||
-                   countryLower.includes(searchTerm);
-          });
-        });
-      } else if (countryCodes && countryCodes.length > 0) {
-        // Map country codes to webcam regions (simplified)
-        const regionMapping: Record<string, WebcamRegion> = {
-          'US': 'americas',
-          'MX': 'americas',
-          'CA': 'americas',
-          'IL': 'middle-east',
-          'IR': 'middle-east',
-          'SA': 'middle-east',
-          'AE': 'middle-east',
-          'UA': 'europe',
-          'RU': 'europe',
-          'FR': 'europe',
-          'GB': 'europe',
-          'CN': 'asia',
-          'TW': 'asia',
-          'JP': 'asia',
-          'KR': 'asia',
-          'AU': 'asia',
-        };
-        const allowedRegions = new Set(countryCodes.map(cc => regionMapping[cc]).filter(Boolean));
-        if (allowedRegions.size > 0) {
-          feeds = feeds.filter(f => allowedRegions.has(f.region));
-        }
-      }
+      feeds = this.applyCascadingFilter(feeds);
     }
 
     return feeds;
+  }
+
+  /**
+   * Apply cascading filter - try specific region first, then walk up the hierarchy
+   */
+  private applyCascadingFilter(feeds: WebcamFeed[]): WebcamFeed[] {
+    if (!this.geographicFilter) return feeds;
+
+    // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
+    const { getRegionHierarchy } = require('@/config/geographic-regions');
+    const hierarchy = getRegionHierarchy(this.geographicFilter.id);
+
+    // Try each level of the hierarchy from most specific to least specific
+    for (const region of hierarchy) {
+      const filtered = this.filterByRegion(feeds, region);
+      if (filtered.length > 0) {
+        console.log(`[LiveWebcams] Found ${filtered.length} webcams at level: ${region.label}`);
+        return filtered;
+      }
+    }
+
+    // If nothing found at any level, return empty
+    return [];
+  }
+
+  /**
+   * Filter feeds by a specific region
+   */
+  private filterByRegion(feeds: WebcamFeed[], region: import('@/config/geographic-regions').GeographicRegion): WebcamFeed[] {
+    const { cities, countryCodes } = region;
+
+    // Try city matching first
+    if (cities && cities.length > 0) {
+      const cityMatches = feeds.filter(f => {
+        const cityLower = f.city.toLowerCase();
+        const countryLower = f.country.toLowerCase();
+        return cities.some(c => {
+          const searchTerm = c.toLowerCase();
+          return cityLower.includes(searchTerm) ||
+                 searchTerm.includes(cityLower) ||
+                 countryLower.includes(searchTerm);
+        });
+      });
+      if (cityMatches.length > 0) return cityMatches;
+    }
+
+    // Try country code matching
+    if (countryCodes && countryCodes.length > 0) {
+      const regionMapping: Record<string, WebcamRegion> = {
+        'US': 'americas',
+        'MX': 'americas',
+        'CA': 'americas',
+        'IL': 'middle-east',
+        'IR': 'middle-east',
+        'SA': 'middle-east',
+        'AE': 'middle-east',
+        'UA': 'europe',
+        'RU': 'europe',
+        'FR': 'europe',
+        'GB': 'europe',
+        'CN': 'asia',
+        'TW': 'asia',
+        'JP': 'asia',
+        'KR': 'asia',
+        'AU': 'asia',
+      };
+      const allowedRegions = new Set(countryCodes.map(cc => regionMapping[cc]).filter(Boolean));
+      if (allowedRegions.size > 0) {
+        return feeds.filter(f => allowedRegions.has(f.region));
+      }
+    }
+
+    return [];
   }
 
   private static readonly ALL_GRID_IDS = ['jerusalem', 'tehran', 'kyiv', 'washington'];

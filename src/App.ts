@@ -2025,6 +2025,12 @@ export class App {
       liveNewsPanel.setGeographicFilter?.(region);
     }
 
+    // Filter insights panel if it exists
+    if (this.panels['insights']) {
+      const insightsPanel = this.panels['insights'] as InsightsPanel;
+      insightsPanel.setGeographicFilter?.(region);
+    }
+
     // Filter news panels by geographic region
     this.filterNewsPanelsByRegion(region);
   }

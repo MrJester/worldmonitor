@@ -117,6 +117,17 @@ export const FEED_REGION_MAPPINGS: FeedRegionMapping[] = [
   { source: 'Buenos Aires Times', countryCodes: ['AR'], regions: ['latin-america'] },
   { source: 'Infobae', countryCodes: ['AR'], regions: ['latin-america'] },
 
+  // Mexico
+  { source: 'El Universal', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'Mexico News Daily', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'Reforma', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'El Financiero', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'Milenio', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'Proceso', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'Animal Político', countryCodes: ['MX'], regions: ['north-america', 'latin-america'] },
+  { source: 'Vallarta Daily', countryCodes: ['MX'], regions: ['north-america', 'latin-america'], cities: ['puerto vallarta'] },
+  { source: 'Puerto Vallarta News', countryCodes: ['MX'], regions: ['north-america', 'latin-america'], cities: ['puerto vallarta'] },
+
   // Africa
   { source: 'AllAfrica', regions: ['africa'] },
   { source: 'Africa News', regions: ['africa'] },
@@ -135,15 +146,36 @@ export const FEED_REGION_MAPPINGS: FeedRegionMapping[] = [
 ];
 
 /**
- * Get feeds that match a geographic region
+ * Get feeds that match a geographic region with cascading fallback
  */
 export function getFeedsForRegion(regionId: string, countryCodes?: string[]): Set<string> {
-  const matchingSources = new Set<string>();
-
   // Global always shows all feeds
   if (regionId === 'global') {
-    return matchingSources;
+    return new Set<string>();
   }
+
+  // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
+  const { getRegionHierarchy } = require('@/config/geographic-regions');
+  const hierarchy = getRegionHierarchy(regionId);
+
+  // Try each level of the hierarchy from most specific to least specific
+  for (const region of hierarchy) {
+    const sources = getFeedsForSpecificRegion(region.id, region.countryCodes);
+    if (sources.size > 0) {
+      console.log(`[FeedRegions] Found ${sources.size} sources at level: ${region.label}`);
+      return sources;
+    }
+  }
+
+  // If nothing found at any level, return empty
+  return new Set<string>();
+}
+
+/**
+ * Get feeds for a specific region without cascading
+ */
+function getFeedsForSpecificRegion(regionId: string, countryCodes?: string[]): Set<string> {
+  const matchingSources = new Set<string>();
 
   // Add sources that match the region or country
   FEED_REGION_MAPPINGS.forEach(mapping => {

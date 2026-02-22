@@ -513,3 +513,28 @@ export function isInRegion(
   const { north, south, east, west } = region.bounds;
   return lat <= north && lat >= south && lng <= east && lng >= west;
 }
+
+/**
+ * Get the hierarchy chain for a region (region -> parent -> grandparent -> ... -> global)
+ * Returns regions in order from most specific to least specific
+ */
+export function getRegionHierarchy(regionId: string): GeographicRegion[] {
+  const hierarchy: GeographicRegion[] = [];
+  let currentId: string | undefined = regionId;
+
+  // Walk up the parent chain
+  while (currentId) {
+    const region = getRegionById(currentId);
+    if (!region) break;
+    hierarchy.push(region);
+    currentId = region.parent;
+  }
+
+  // Always add global at the end if not already present
+  const globalRegion = getRegionById('global');
+  if (globalRegion && !hierarchy.some(r => r.id === 'global')) {
+    hierarchy.push(globalRegion);
+  }
+
+  return hierarchy;
+}

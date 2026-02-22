@@ -21,6 +21,8 @@ export class InsightsPanel extends Panel {
   private lastConvergenceZones: RegionalConvergence[] = [];
   private lastFocalPoints: FocalPoint[] = [];
   private lastMilitaryFlights: MilitaryFlight[] = [];
+  private geographicFilter: import('@/config/geographic-regions').GeographicRegion | null = null;
+  private lastClusters: ClusteredEvent[] = [];
   private static readonly BRIEF_COOLDOWN_MS = 120000; // 2 min cooldown (API has limits)
   private static readonly BRIEF_CACHE_KEY = 'summary:world-brief';
 
@@ -245,7 +247,13 @@ export class InsightsPanel extends Panel {
   public async updateInsights(clusters: ClusteredEvent[]): Promise<void> {
     if (this.isHidden) return;
 
-    if (clusters.length === 0) {
+    // Store clusters for re-filtering
+    this.lastClusters = clusters;
+
+    // Apply geographic filter
+    const filteredClusters = this.applyGeographicFilter(clusters);
+
+    if (filteredClusters.length === 0) {
       this.setDataBadge('unavailable');
       this.setContent(`<div class="insights-empty">${t('components.insights.waitingForData')}</div>`);
       return;
@@ -257,7 +265,7 @@ export class InsightsPanel extends Panel {
       // Step 1: Filter and rank stories by composite importance score
       this.setProgress(1, totalSteps, t('components.insights.rankingStories'));
 
-      const importantClusters = this.selectTopStories(clusters, 8);
+      const importantClusters = this.selectTopStories(filteredClusters, 8);
 
       // Run parallel multi-perspective analysis in background (logs to console)
       // This analyzes ALL clusters, not just the keyword-filtered ones
@@ -629,5 +637,113 @@ export class InsightsPanel extends Panel {
         ${focalPointsHtml}
       </div>
     `;
+  }
+
+  /**
+   * Apply geographic filter to clusters with cascading fallback
+   */
+  private applyGeographicFilter(clusters: ClusteredEvent[]): ClusteredEvent[] {
+    // If no filter or global, return all
+    if (!this.geographicFilter || this.geographicFilter.id === 'global') {
+      return clusters;
+    }
+
+    // Get hierarchy: puerto-vallarta -> mexico -> north-america -> global
+    const { getRegionHierarchy } = require('@/config/geographic-regions');
+    const hierarchy = getRegionHierarchy(this.geographicFilter.id);
+
+    // Try each level of the hierarchy from most specific to least specific
+    for (const region of hierarchy) {
+      const filtered = this.filterClustersByRegion(clusters, region);
+      if (filtered.length > 0) {
+        console.log(`[Insights] Found ${filtered.length} clusters at level: ${region.label}`);
+        return filtered;
+      }
+    }
+
+    // If nothing found at any level, return empty
+    return [];
+  }
+
+  /**
+   * Filter clusters by a specific region
+   */
+  private filterClustersByRegion(clusters: ClusteredEvent[], region: import('@/config/geographic-regions').GeographicRegion): ClusteredEvent[] {
+    const { countryCodes, cities, bounds } = region;
+
+    return clusters.filter(cluster => {
+      // Check if any article in the cluster mentions the region
+      return cluster.articles.some(article => {
+        const contentLower = `${article.title} ${article.description || ''}`.toLowerCase();
+
+        // Check city names
+        if (cities && cities.length > 0) {
+          if (cities.some(city => contentLower.includes(city.toLowerCase()))) {
+            return true;
+          }
+        }
+
+        // Check country codes by looking for country names
+        if (countryCodes && countryCodes.length > 0) {
+          const countryNames = this.getCountryNames(countryCodes);
+          if (countryNames.some(name => contentLower.includes(name.toLowerCase()))) {
+            return true;
+          }
+        }
+
+        // Check coordinates if available
+        if (bounds && cluster.location) {
+          const { latitude, longitude } = cluster.location;
+          if (
+            latitude >= bounds.south &&
+            latitude <= bounds.north &&
+            longitude >= bounds.west &&
+            longitude <= bounds.east
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+    });
+  }
+
+  /**
+   * Convert country codes to country names for text matching
+   */
+  private getCountryNames(countryCodes: string[]): string[] {
+    const countryMap: Record<string, string> = {
+      'US': 'united states',
+      'MX': 'mexico',
+      'CA': 'canada',
+      'IL': 'israel',
+      'IR': 'iran',
+      'SA': 'saudi arabia',
+      'AE': 'uae',
+      'UA': 'ukraine',
+      'RU': 'russia',
+      'FR': 'france',
+      'GB': 'united kingdom',
+      'CN': 'china',
+      'TW': 'taiwan',
+      'JP': 'japan',
+      'KR': 'south korea',
+      'AU': 'australia',
+    };
+
+    return countryCodes.map(code => countryMap[code] || '').filter(Boolean);
+  }
+
+  /**
+   * Set geographic filter and re-render insights
+   */
+  public setGeographicFilter(region: import('@/config/geographic-regions').GeographicRegion | null): void {
+    this.geographicFilter = region;
+
+    // Re-render with filtered data if we have cached clusters
+    if (this.lastClusters.length > 0) {
+      this.updateInsights(this.lastClusters);
+    }
   }
 }

@@ -117,17 +117,33 @@ export class Panel {
 
     this.header.appendChild(headerLeft);
 
+    const headerRight = document.createElement('div');
+    headerRight.className = 'panel-header-right';
+
     this.statusBadgeEl = document.createElement('span');
     this.statusBadgeEl.className = 'panel-data-badge';
     this.statusBadgeEl.style.display = 'none';
-    this.header.appendChild(this.statusBadgeEl);
+    headerRight.appendChild(this.statusBadgeEl);
 
     if (options.showCount) {
       this.countEl = document.createElement('span');
       this.countEl.className = 'panel-count';
       this.countEl.textContent = '0';
-      this.header.appendChild(this.countEl);
+      headerRight.appendChild(this.countEl);
     }
+
+    // Add close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'panel-close-btn';
+    closeBtn.setAttribute('aria-label', 'Close panel');
+    closeBtn.innerHTML = '×';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.hide();
+    });
+    headerRight.appendChild(closeBtn);
+
+    this.header.appendChild(headerRight);
 
     this.content = document.createElement('div');
     this.content.className = 'panel-content';
