@@ -11,6 +11,7 @@ export interface PanelOptions {
   className?: string;
   trackActivity?: boolean;
   infoTooltip?: string;
+  onClose?: () => void;
 }
 
 const PANEL_SPANS_KEY = 'worldmonitor-panel-spans';
@@ -56,6 +57,8 @@ export class Panel {
   protected statusBadgeEl: HTMLElement | null = null;
   protected newBadgeEl: HTMLElement | null = null;
   protected panelId: string;
+  private closeBtn: HTMLElement | null = null;
+  private onCloseCallback: (() => void) | null = null;
   private abortController: AbortController = new AbortController();
   private tooltipCloseHandler: (() => void) | null = null;
   private resizeHandle: HTMLElement | null = null;
@@ -127,6 +130,26 @@ export class Panel {
       this.countEl.className = 'panel-count';
       this.countEl.textContent = '0';
       this.header.appendChild(this.countEl);
+    }
+
+    // Create close button (initially hidden, will be shown when onClose is set)
+    this.closeBtn = document.createElement('button');
+    this.closeBtn.className = 'panel-close-btn';
+    this.closeBtn.setAttribute('aria-label', 'Close panel');
+    this.closeBtn.textContent = '×';
+    this.closeBtn.style.display = 'none';
+    this.closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (this.onCloseCallback) {
+        this.onCloseCallback();
+      }
+    });
+    this.header.appendChild(this.closeBtn);
+
+    // Set initial onClose if provided
+    if (options.onClose) {
+      this.setOnClose(options.onClose);
     }
 
     this.content = document.createElement('div');
@@ -468,6 +491,16 @@ export class Panel {
     if (this.onDocMouseUp) {
       document.removeEventListener('mouseup', this.onDocMouseUp);
       this.onDocMouseUp = null;
+    }
+  }
+
+  /**
+   * Set the onClose callback and show the close button
+   */
+  public setOnClose(callback: () => void): void {
+    this.onCloseCallback = callback;
+    if (this.closeBtn) {
+      this.closeBtn.style.display = 'flex';
     }
   }
 }

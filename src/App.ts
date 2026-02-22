@@ -2501,6 +2501,7 @@ export class App {
     });
 
     this.applyPanelSettings();
+    this.setupPanelCloseButtons();
     this.applyInitialUrlState();
 
   }
@@ -3161,6 +3162,25 @@ export class App {
       }
       const panel = this.panels[key];
       panel?.toggle(config.enabled);
+    });
+  }
+
+  /**
+   * Setup close buttons for all panels
+   */
+  private setupPanelCloseButtons(): void {
+    Object.entries(this.panels).forEach(([key, panel]) => {
+      panel.setOnClose(() => {
+        // Toggle the panel off
+        const config = this.panelSettings[key];
+        if (config) {
+          config.enabled = false;
+          trackPanelToggled(key, false);
+          saveToStorage(STORAGE_KEYS.panels, this.panelSettings);
+          this.renderPanelToggles();
+          this.applyPanelSettings();
+        }
+      });
     });
   }
 
