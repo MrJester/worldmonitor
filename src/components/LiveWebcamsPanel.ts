@@ -427,14 +427,16 @@ export class LiveWebcamsPanel extends Panel {
         (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.region === 'all');
       });
     }
-    // Force render when filter changes - bypass visibility/idle checks
+    // Update active feed if needed
     const feeds = this.filteredFeeds;
     if (feeds.length > 0 && !feeds.includes(this.activeFeed)) {
       this.activeFeed = feeds[0]!;
     }
-    if (!this.isIdle) {
-      this.render();
-    }
+    // Force render by temporarily setting isVisible to true
+    const wasVisible = this.isVisible;
+    this.isVisible = true;
+    this.render();
+    this.isVisible = wasVisible;
   }
 
   public destroy(): void {
