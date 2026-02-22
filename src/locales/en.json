@@ -422,7 +422,9 @@
       "canada": "Canada",
       "middleEast": "Middle East",
       "europe": "Europe",
-      "asia": "Asia & Pacific"
+      "asia": "Asia & Pacific",
+      "latinAmerica": "Latin America",
+      "africa": "Africa"
     },
     "webcams": {
       "regions": {

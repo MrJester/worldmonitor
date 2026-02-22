@@ -43,7 +43,7 @@ export class GeographicFilter {
     const groups: Record<string, string[]> = {};
 
     // Initialize known groups
-    const knownGroups = ['global', 'continents', 'north-america', 'usa', 'mexico', 'canada', 'middle-east', 'europe', 'asia'];
+    const knownGroups = ['global', 'north-america', 'usa', 'mexico', 'canada', 'middle-east', 'europe', 'asia', 'latin-america', 'africa'];
     knownGroups.forEach(key => groups[key] = []);
 
     // Group regions by hierarchy
@@ -52,8 +52,6 @@ export class GeographicFilter {
 
       if (region.type === 'global') {
         groups['global']!.push(option);
-      } else if (region.type === 'continent') {
-        groups['continents']!.push(option);
       } else if (region.parent) {
         if (!groups[region.parent]) {
           groups[region.parent] = [];
@@ -62,104 +60,117 @@ export class GeographicFilter {
       }
     });
 
-    // Build hierarchical optgroups
+    // Build hierarchical tree structure
     let html = groups['global']!.join('');
 
-    if (groups['continents']!.length > 0) {
-      html += `<optgroup label="── ${t('components.geoFilter.continents')} ──">`;
-      html += groups['continents']!.join('');
-      html += '</optgroup>';
-    }
+    // North America - Continent level
+    html += `<optgroup label="━━━ ${t('components.geoFilter.northAmerica')} ━━━">`;
 
-    // North America group
-    if (groups['north-america']!.length > 0) {
-      html += `<optgroup label="── ${t('components.geoFilter.northAmerica')} ──">`;
-      html += groups['north-america']!.join('');
-
-      // USA nested
+    // USA
+    const usaRegion = getRegionById('usa');
+    if (usaRegion) {
+      html += `<option value="usa">${escapeHtml(usaRegion.label)}</option>`;
       if (groups['usa']!.length > 0) {
-        html += `<optgroup label="  └─ ${t('components.geoFilter.usa')}">`;
+        html += `<optgroup label="  ├─ States & Cities">`;
         html += groups['usa']!.join('');
         html += '</optgroup>';
       }
+    }
 
-      // Mexico nested
+    // Mexico
+    const mexicoRegion = getRegionById('mexico');
+    if (mexicoRegion) {
+      html += `<option value="mexico">${escapeHtml(mexicoRegion.label)}</option>`;
       if (groups['mexico']!.length > 0) {
-        html += `<optgroup label="  └─ ${t('components.geoFilter.mexico')}">`;
+        html += `<optgroup label="  ├─ Cities">`;
         html += groups['mexico']!.join('');
         html += '</optgroup>';
       }
+    }
 
-      // Canada nested
+    // Canada
+    const canadaRegion = getRegionById('canada');
+    if (canadaRegion) {
+      html += `<option value="canada">${escapeHtml(canadaRegion.label)}</option>`;
       if (groups['canada']!.length > 0) {
-        html += `<optgroup label="  └─ ${t('components.geoFilter.canada')}">`;
+        html += `<optgroup label="  └─ Cities">`;
         html += groups['canada']!.join('');
         html += '</optgroup>';
       }
+    }
 
+    html += '</optgroup>';
+
+    // Middle East - Continent level
+    html += `<optgroup label="━━━ ${t('components.geoFilter.middleEast')} ━━━">`;
+
+    ['israel', 'iran', 'saudi-arabia', 'uae'].forEach((countryId, index, arr) => {
+      const countryRegion = getRegionById(countryId);
+      if (countryRegion) {
+        html += `<option value="${countryId}">${escapeHtml(countryRegion.label)}</option>`;
+        const parentGroup = groups[countryId];
+        if (parentGroup && parentGroup.length > 0) {
+          const isLast = index === arr.length - 1;
+          html += `<optgroup label="  ${isLast ? '└' : '├'}─ Cities">`;
+          html += parentGroup.join('');
+          html += '</optgroup>';
+        }
+      }
+    });
+
+    html += '</optgroup>';
+
+    // Europe - Continent level
+    html += `<optgroup label="━━━ ${t('components.geoFilter.europe')} ━━━">`;
+
+    ['ukraine', 'russia', 'france', 'uk'].forEach((countryId, index, arr) => {
+      const countryRegion = getRegionById(countryId);
+      if (countryRegion) {
+        html += `<option value="${countryId}">${escapeHtml(countryRegion.label)}</option>`;
+        const parentGroup = groups[countryId];
+        if (parentGroup && parentGroup.length > 0) {
+          const isLast = index === arr.length - 1;
+          html += `<optgroup label="  ${isLast ? '└' : '├'}─ Cities">`;
+          html += parentGroup.join('');
+          html += '</optgroup>';
+        }
+      }
+    });
+
+    html += '</optgroup>';
+
+    // Asia & Pacific - Continent level
+    html += `<optgroup label="━━━ ${t('components.geoFilter.asia')} ━━━">`;
+
+    ['china', 'taiwan', 'japan', 'south-korea', 'australia'].forEach((countryId, index, arr) => {
+      const countryRegion = getRegionById(countryId);
+      if (countryRegion) {
+        html += `<option value="${countryId}">${escapeHtml(countryRegion.label)}</option>`;
+        const parentGroup = groups[countryId];
+        if (parentGroup && parentGroup.length > 0) {
+          const isLast = index === arr.length - 1;
+          html += `<optgroup label="  ${isLast ? '└' : '├'}─ Cities">`;
+          html += parentGroup.join('');
+          html += '</optgroup>';
+        }
+      }
+    });
+
+    html += '</optgroup>';
+
+    // Latin America - Continent level (if regions exist)
+    const latinAmericaRegion = getRegionById('latin-america');
+    if (latinAmericaRegion) {
+      html += `<optgroup label="━━━ ${t('components.geoFilter.latinAmerica')} ━━━">`;
+      html += `<option value="latin-america">${escapeHtml(latinAmericaRegion.label)}</option>`;
       html += '</optgroup>';
     }
 
-    // Middle East group
-    if (groups['middle-east']!.length > 0) {
-      html += `<optgroup label="── ${t('components.geoFilter.middleEast')} ──">`;
-      html += groups['middle-east']!.join('');
-
-      // Add sub-regions
-      ['israel', 'iran', 'saudi-arabia', 'uae'].forEach((parentId) => {
-        const parentGroup = groups[parentId];
-        if (parentGroup && parentGroup.length > 0) {
-          const parent = getRegionById(parentId);
-          if (parent) {
-            html += `<optgroup label="  └─ ${escapeHtml(parent.label)}">`;
-            html += parentGroup.join('');
-            html += '</optgroup>';
-          }
-        }
-      });
-
-      html += '</optgroup>';
-    }
-
-    // Europe group
-    if (groups['europe']!.length > 0) {
-      html += `<optgroup label="── ${t('components.geoFilter.europe')} ──">`;
-      html += groups['europe']!.join('');
-
-      // Add sub-regions
-      ['ukraine', 'russia', 'france', 'uk'].forEach((parentId) => {
-        const parentGroup = groups[parentId];
-        if (parentGroup && parentGroup.length > 0) {
-          const parent = getRegionById(parentId);
-          if (parent) {
-            html += `<optgroup label="  └─ ${escapeHtml(parent.label)}">`;
-            html += parentGroup.join('');
-            html += '</optgroup>';
-          }
-        }
-      });
-
-      html += '</optgroup>';
-    }
-
-    // Asia group
-    if (groups['asia']!.length > 0) {
-      html += `<optgroup label="── ${t('components.geoFilter.asia')} ──">`;
-      html += groups['asia']!.join('');
-
-      // Add sub-regions
-      ['china', 'taiwan', 'japan', 'south-korea', 'australia'].forEach((parentId) => {
-        const parentGroup = groups[parentId];
-        if (parentGroup && parentGroup.length > 0) {
-          const parent = getRegionById(parentId);
-          if (parent) {
-            html += `<optgroup label="  └─ ${escapeHtml(parent.label)}">`;
-            html += parentGroup.join('');
-            html += '</optgroup>';
-          }
-        }
-      });
-
+    // Africa - Continent level (if regions exist)
+    const africaRegion = getRegionById('africa');
+    if (africaRegion) {
+      html += `<optgroup label="━━━ ${t('components.geoFilter.africa')} ━━━">`;
+      html += `<option value="africa">${escapeHtml(africaRegion.label)}</option>`;
       html += '</optgroup>';
     }
 
