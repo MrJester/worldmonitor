@@ -72,12 +72,15 @@ export class LiveWebcamsPanel extends Panel {
   private readonly IDLE_PAUSE_MS = 5 * 60 * 1000;
   private isIdle = false;
   private geographicFilter: import('@/config/geographic-regions').GeographicRegion | null = null;
+  private floatingOverlay: HTMLElement | null = null;
+  private currentCameraIndex = 0;
+  private isExpanded = false;
 
   constructor() {
     super({
       id: 'live-webcams',
       title: t('panels.liveWebcams'),
-      onPopOut: () => this.openInNewWindow()
+      onPopOut: () => this.openFloatingOverlay()
     });
     this.element.classList.add('panel-wide');
     this.createToolbar();
@@ -86,28 +89,178 @@ export class LiveWebcamsPanel extends Panel {
     this.render();
   }
 
-  private openInNewWindow(): void {
-    // Build URL with current webcam state
-    const baseUrl = window.location.origin + window.location.pathname;
-    const params = new URLSearchParams();
-
-    // Set view to only show webcams panel maximized
-    params.set('panels', 'liveWebcams');
-    params.set('view', 'panel-only');
-
-    // Include current region filter if not 'all'
-    if (this.regionFilter !== 'all') {
-      params.set('webcam-region', this.regionFilter);
+  private openFloatingOverlay(): void {
+    if (this.floatingOverlay) {
+      this.closeFloatingOverlay();
+      return;
     }
 
-    // Include current view mode and active feed
-    params.set('webcam-mode', this.viewMode);
-    if (this.viewMode === 'single') {
-      params.set('webcam-feed', this.activeFeed.id);
-    }
+    this.floatingOverlay = document.createElement('div');
+    this.floatingOverlay.className = 'webcam-floating-overlay';
 
-    const url = `${baseUrl}?${params.toString()}`;
-    window.open(url, '_blank', 'width=1200,height=800');
+    const container = document.createElement('div');
+    container.className = 'webcam-floating-container';
+
+    const header = document.createElement('div');
+    header.className = 'webcam-floating-header';
+
+    const title = document.createElement('div');
+    title.className = 'webcam-floating-title';
+    title.textContent = t('panels.liveWebcams');
+
+    const controls = document.createElement('div');
+    controls.className = 'webcam-floating-controls';
+
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'webcam-floating-btn';
+    expandBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+    expandBtn.title = 'Toggle grid';
+    expandBtn.addEventListener('click', () => this.toggleExpanded());
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'webcam-floating-btn';
+    closeBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    closeBtn.title = 'Close';
+    closeBtn.addEventListener('click', () => this.closeFloatingOverlay());
+
+    controls.appendChild(expandBtn);
+    controls.appendChild(closeBtn);
+
+    header.appendChild(title);
+    header.appendChild(controls);
+
+    const content = document.createElement('div');
+    content.className = 'webcam-floating-content';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'webcam-nav-btn webcam-nav-prev';
+    prevBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>';
+    prevBtn.addEventListener('click', () => this.navigateCamera(-1));
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'webcam-nav-btn webcam-nav-next';
+    nextBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+    nextBtn.addEventListener('click', () => this.navigateCamera(1));
+
+    content.appendChild(prevBtn);
+    content.appendChild(nextBtn);
+
+    container.appendChild(header);
+    container.appendChild(content);
+
+    this.floatingOverlay.appendChild(container);
+    document.body.appendChild(this.floatingOverlay);
+
+    // Allow container to be draggable
+    this.makeDraggable(container, header);
+
+    this.renderFloatingContent(content);
+  }
+
+  private makeDraggable(container: HTMLElement, handle: HTMLElement): void {
+    let isDragging = false;
+    let currentX = 0;
+    let currentY = 0;
+    let initialX = 0;
+    let initialY = 0;
+
+    handle.style.cursor = 'move';
+
+    handle.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      initialX = e.clientX - currentX;
+      initialY = e.clientY - currentY;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        e.preventDefault();
+        currentX = e.clientX - initialX;
+        currentY = e.clientY - initialY;
+        container.style.transform = `translate(${currentX}px, ${currentY}px)`;
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+  }
+
+  private closeFloatingOverlay(): void {
+    if (this.floatingOverlay) {
+      this.floatingOverlay.remove();
+      this.floatingOverlay = null;
+      this.isExpanded = false;
+    }
+  }
+
+  private toggleExpanded(): void {
+    this.isExpanded = !this.isExpanded;
+    const content = this.floatingOverlay?.querySelector('.webcam-floating-content');
+    if (content) {
+      this.renderFloatingContent(content as HTMLElement);
+    }
+  }
+
+  private navigateCamera(direction: number): void {
+    const feeds = this.filteredFeeds;
+    this.currentCameraIndex = (this.currentCameraIndex + direction + feeds.length) % feeds.length;
+    const content = this.floatingOverlay?.querySelector('.webcam-floating-content');
+    if (content) {
+      this.renderFloatingContent(content as HTMLElement);
+    }
+  }
+
+  private renderFloatingContent(content: HTMLElement): void {
+    content.innerHTML = '';
+    const feeds = this.filteredFeeds;
+
+    if (this.isExpanded) {
+      // Show grid of cameras (2x2)
+      const grid = document.createElement('div');
+      grid.className = 'webcam-floating-grid';
+
+      const displayFeeds = feeds.slice(0, 4);
+      displayFeeds.forEach(feed => {
+        const cell = document.createElement('div');
+        cell.className = 'webcam-floating-cell';
+
+        const label = document.createElement('div');
+        label.className = 'webcam-cell-label';
+        label.innerHTML = `<span class="webcam-live-dot"></span><span class="webcam-city">${escapeHtml(feed.city)}</span>`;
+
+        const iframe = this.createIframe(feed);
+        cell.appendChild(iframe);
+        cell.appendChild(label);
+        grid.appendChild(cell);
+      });
+
+      content.appendChild(grid);
+      content.parentElement?.classList.add('expanded');
+    } else {
+      // Show single camera
+      const feed = feeds[this.currentCameraIndex] || feeds[0];
+      if (!feed) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'webcam-floating-single';
+
+      const label = document.createElement('div');
+      label.className = 'webcam-floating-label';
+      label.innerHTML = `<span class="webcam-live-dot"></span><span class="webcam-city">${escapeHtml(feed.city)}, ${escapeHtml(feed.country)}</span>`;
+
+      const iframe = this.createIframe(feed);
+      wrapper.appendChild(iframe);
+      wrapper.appendChild(label);
+
+      const indicator = document.createElement('div');
+      indicator.className = 'webcam-camera-indicator';
+      indicator.textContent = `${this.currentCameraIndex + 1} / ${feeds.length}`;
+      wrapper.appendChild(indicator);
+
+      content.appendChild(wrapper);
+      content.parentElement?.classList.remove('expanded');
+    }
   }
 
   private get filteredFeeds(): WebcamFeed[] {
@@ -586,6 +739,7 @@ export class LiveWebcamsPanel extends Panel {
     });
     this.observer?.disconnect();
     this.destroyIframes();
+    this.closeFloatingOverlay();
     super.destroy();
   }
 }
