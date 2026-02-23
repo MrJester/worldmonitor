@@ -171,6 +171,7 @@ export class App {
   }, 120);
   private isPlaybackMode = false;
   private initialUrlState: ParsedMapUrlState | null = null;
+  private isApplyingUrlState = false;
   private inFlight: Set<string> = new Set();
   private isMobile: boolean;
   private seenGeoAlerts: Set<string> = new Set();
@@ -2509,7 +2510,11 @@ export class App {
   private applyInitialUrlState(): void {
     if (!this.initialUrlState || !this.map) return;
 
+    this.isApplyingUrlState = true;
+
     const { view, zoom, lat, lon, timeRange, layers, panels, region } = this.initialUrlState;
+
+    console.log('[App] Applying initial URL state:', { view, zoom, timeRange, panels, region });
 
     if (view) {
       this.map.setView(view);
@@ -2527,18 +2532,15 @@ export class App {
 
     // Apply panel visibility settings from URL
     if (panels) {
+      console.log('[App] Applying panels from URL:', panels);
       const enabledPanelKeys = panels.split(',').filter(Boolean);
+      console.log('[App] Enabled panel keys:', enabledPanelKeys);
       Object.keys(this.panelSettings).forEach(key => {
         this.panelSettings[key]!.enabled = enabledPanelKeys.includes(key);
       });
       saveToStorage(STORAGE_KEYS.panels, this.panelSettings);
       this.applyPanelSettings();
       this.renderPanelToggles();
-    }
-
-    // Apply geographic filter from URL
-    if (region && this.geographicFilter) {
-      this.geographicFilter.setRegion(region);
     }
 
     // Only apply custom lat/lon/zoom if NO view preset is specified
@@ -2555,12 +2557,21 @@ export class App {
       }
     }
 
+    // Apply geographic filter from URL AFTER map position is set
+    // This prevents the auto-zoom in the filter change handler from overriding URL position
+    if (region && this.geographicFilter) {
+      console.log('[App] Applying geographic filter from URL:', region);
+      this.geographicFilter.setRegion(region);
+    }
+
     // Sync header region selector with initial view
     const regionSelect = document.getElementById('regionSelect') as HTMLSelectElement;
     const currentView = this.map.getState().view;
     if (regionSelect && currentView) {
       regionSelect.value = currentView;
     }
+
+    this.isApplyingUrlState = false;
   }
 
   private getSavedPanelOrder(): string[] {
@@ -2773,9 +2784,11 @@ export class App {
     this.geographicFilter = new GeographicFilter('geoFilterContainer', (event) => {
       console.log('[App] Geographic filter changed:', event.regionId, event.region.label);
 
-      // Auto-zoom map to region
-      const { viewport } = event.region;
-      this.map?.setCenter(viewport.latitude, viewport.longitude, viewport.zoom);
+      // Auto-zoom map to region (skip if we're loading from URL state)
+      if (!this.isApplyingUrlState) {
+        const { viewport } = event.region;
+        this.map?.setCenter(viewport.latitude, viewport.longitude, viewport.zoom);
+      }
 
       // Notify panels about the filter change
       this.onGeographicFilterChange(event.region);
@@ -2899,7 +2912,15 @@ export class App {
     // Get current geographic filter region ID
     const regionId = this.geographicFilter?.getCurrentRegion()?.id;
 
-    return buildMapUrl(baseUrl, {
+    console.log('[App] Building share URL with:', {
+      enabledPanels,
+      regionId,
+      view: state.view,
+      zoom: state.zoom,
+      timeRange: state.timeRange,
+    });
+
+    const url = buildMapUrl(baseUrl, {
       view: state.view,
       zoom: state.zoom,
       center,
@@ -2909,6 +2930,9 @@ export class App {
       panels: enabledPanels || undefined,
       region: regionId && regionId !== 'global' ? regionId : undefined,
     });
+
+    console.log('[App] Generated share URL:', url);
+    return url;
   }
 
   private async copyToClipboard(text: string): Promise<void> {

@@ -280,11 +280,22 @@ export class LiveWebcamsPanel extends Panel {
     iframe.className = 'webcam-iframe';
     iframe.src = this.buildEmbedUrl(feed);
     iframe.title = `${feed.city} live webcam`;
-    iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.setAttribute('loading', 'lazy');
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+
+    // Custom embeds may need more permissive settings
+    if (feed.customEmbedUrl) {
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      // More permissive sandbox for custom embeds that need to make network requests
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-forms allow-popups');
+    } else {
+      // YouTube embeds with stricter sandbox
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+    }
+
     return iframe;
   }
 
