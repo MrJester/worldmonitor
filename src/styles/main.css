@@ -1141,12 +1141,6 @@ canvas,
   gap: 8px;
 }
 
-.panel-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .panel-popout-btn,
 .panel-close-btn {
   display: flex;
@@ -1166,6 +1160,10 @@ canvas,
   transition: all 0.15s ease;
   opacity: 0.5;
   flex-shrink: 0;
+}
+
+.panel-popout-btn {
+  margin-left: auto;
 }
 
 .panel-popout-btn:hover {

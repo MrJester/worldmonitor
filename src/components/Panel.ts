@@ -123,20 +123,16 @@ export class Panel {
 
     this.header.appendChild(headerLeft);
 
-    // Create right side container for badges and buttons
-    const headerRight = document.createElement('div');
-    headerRight.className = 'panel-header-right';
-
     this.statusBadgeEl = document.createElement('span');
     this.statusBadgeEl.className = 'panel-data-badge';
     this.statusBadgeEl.style.display = 'none';
-    headerRight.appendChild(this.statusBadgeEl);
+    this.header.appendChild(this.statusBadgeEl);
 
     if (options.showCount) {
       this.countEl = document.createElement('span');
       this.countEl.className = 'panel-count';
       this.countEl.textContent = '0';
-      headerRight.appendChild(this.countEl);
+      this.header.appendChild(this.countEl);
     }
 
     // Create pop-out button (initially hidden, will be shown when onPopOut is set)
@@ -152,7 +148,7 @@ export class Panel {
         this.onPopOutCallback();
       }
     });
-    headerRight.appendChild(this.popOutBtn);
+    this.header.appendChild(this.popOutBtn);
 
     // Create close button (initially hidden, will be shown when onClose is set)
     this.closeBtn = document.createElement('button');
@@ -167,9 +163,7 @@ export class Panel {
         this.onCloseCallback();
       }
     });
-    headerRight.appendChild(this.closeBtn);
-
-    this.header.appendChild(headerRight);
+    this.header.appendChild(this.closeBtn);
 
     // Set initial onClose if provided
     if (options.onClose) {
