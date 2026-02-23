@@ -443,7 +443,12 @@ export class LiveWebcamsPanel extends Panel {
   private buildEmbedUrl(feed: WebcamFeed): string {
     // Use custom embed URL if provided
     if (feed.customEmbedUrl) {
-      return feed.customEmbedUrl;
+      const url = new URL(feed.customEmbedUrl);
+      // Add autoplay parameter if not already present
+      if (!url.searchParams.has('autoplay')) {
+        url.searchParams.set('autoplay', '1');
+      }
+      return url.toString();
     }
 
     // Otherwise use YouTube embed

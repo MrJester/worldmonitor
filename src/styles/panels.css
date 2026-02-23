@@ -190,11 +190,12 @@
   right: 0;
   bottom: 0;
   z-index: 10000;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
 }
 
 .webcam-floating-container {
