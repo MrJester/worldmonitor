@@ -1141,6 +1141,12 @@ canvas,
   gap: 8px;
 }
 
+.panel-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .panel-popout-btn,
 .panel-close-btn {
   display: flex;
