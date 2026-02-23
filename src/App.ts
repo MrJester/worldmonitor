@@ -2897,7 +2897,7 @@ export class App {
       .join(',');
 
     // Get current geographic filter region ID
-    const regionId = this.currentGeographicRegion?.id;
+    const regionId = this.geographicFilter?.getCurrentRegion()?.id;
 
     return buildMapUrl(baseUrl, {
       view: state.view,

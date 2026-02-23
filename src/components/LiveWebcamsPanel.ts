@@ -13,8 +13,9 @@ interface WebcamFeed {
   city: string;
   country: string;
   region: WebcamRegion;
-  channelHandle: string;
-  fallbackVideoId: string;
+  channelHandle?: string;
+  fallbackVideoId?: string;
+  customEmbedUrl?: string; // For non-YouTube embeds
 }
 
 // Verified YouTube live stream IDs — validated Feb 2026 via title cross-check.
@@ -37,6 +38,7 @@ const WEBCAM_FEEDS: WebcamFeed[] = [
   { id: 'los-angeles', city: 'Los Angeles', country: 'USA', region: 'americas', channelHandle: '@VeniceVHotel', fallbackVideoId: 'EO_1LWqsCNE' },
   { id: 'miami', city: 'Miami', country: 'USA', region: 'americas', channelHandle: '@FloridaLiveCams', fallbackVideoId: '5YCajRjvWCg' },
   // Puerto Vallarta, Mexico - multiple beach and city views
+  { id: 'puerto-vallarta-thrive', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://www.ipcamlive.com/player/player.php?alias=66a7fb01a47a4&autoplay=1' },
   { id: 'puerto-vallarta-hyatt', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', channelHandle: '@WebcamsdeMexico', fallbackVideoId: 'RY3iDXftbMc' },
   { id: 'puerto-vallarta-punta-negra', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', channelHandle: '@WebcamsdeMexico', fallbackVideoId: 'cghZs56pmmc' },
   // Asia-Pacific — Taipei first (strait hotspot), then Shanghai, Tokyo, Seoul
@@ -253,7 +255,14 @@ export class LiveWebcamsPanel extends Panel {
     this.render();
   }
 
-  private buildEmbedUrl(videoId: string): string {
+  private buildEmbedUrl(feed: WebcamFeed): string {
+    // Use custom embed URL if provided
+    if (feed.customEmbedUrl) {
+      return feed.customEmbedUrl;
+    }
+
+    // Otherwise use YouTube embed
+    const videoId = feed.fallbackVideoId!;
     if (isDesktopRuntime()) {
       const remoteBase = getRemoteApiBaseUrl();
       const params = new URLSearchParams({
@@ -269,7 +278,7 @@ export class LiveWebcamsPanel extends Panel {
   private createIframe(feed: WebcamFeed): HTMLIFrameElement {
     const iframe = document.createElement('iframe');
     iframe.className = 'webcam-iframe';
-    iframe.src = this.buildEmbedUrl(feed.fallbackVideoId);
+    iframe.src = this.buildEmbedUrl(feed);
     iframe.title = `${feed.city} live webcam`;
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
