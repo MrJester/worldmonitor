@@ -15,7 +15,8 @@ interface WebcamFeed {
   region: WebcamRegion;
   channelHandle?: string;
   fallbackVideoId?: string;
-  customEmbedUrl?: string; // For non-YouTube embeds
+  customEmbedUrl?: string; // For non-YouTube embeds (iframe)
+  mjpegUrl?: string; // For MJPEG streams (img tag)
 }
 
 // Verified YouTube live stream IDs — validated Feb 2026 via title cross-check.
@@ -39,8 +40,11 @@ const WEBCAM_FEEDS: WebcamFeed[] = [
   { id: 'miami', city: 'Miami', country: 'USA', region: 'americas', channelHandle: '@FloridaLiveCams', fallbackVideoId: '5YCajRjvWCg' },
   // Puerto Vallarta, Mexico - multiple beach and city views
   { id: 'puerto-vallarta-thrive', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://www.ipcamlive.com/player/player.php?alias=66a7fb01a47a4&autoplay=1' },
+  { id: 'puerto-vallarta-angelcam', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', mjpegUrl: 'https://e1-na8.angelcam.com/cameras/4919/streams/mjpeg/stream.mjpeg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NzE4MDU1MzQsIm5iZiI6MTc3MTgwNTQxNCwiZXhwIjoxNzcxODA1NjU0LCJkaWQiOiI0OTE5In0.MR_xtatc3fxX1PyEeHjsVoDv31pxiStX5nxriF8bGCo' },
   { id: 'puerto-vallarta-hyatt', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', channelHandle: '@WebcamsdeMexico', fallbackVideoId: 'RY3iDXftbMc' },
-  { id: 'puerto-vallarta-punta-negra', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', channelHandle: '@WebcamsdeMexico', fallbackVideoId: 'cghZs56pmmc' },
+  { id: 'puerto-vallarta-MarinaTowers01', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g3.ipcamlive.com/player/player.php?alias=66a9467052d59' },
+  { id: 'puerto-vallarta-MarinaTowers02', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g1.ipcamlive.com/player/player.php?alias=651f4ad1bab43' },
+  { id: 'puerto-vallarta-MarinaTowers03', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g3.ipcamlive.com/player/player.php?alias=656637e067099' },
   // Asia-Pacific — Taipei first (strait hotspot), then Shanghai, Tokyo, Seoul
   { id: 'taipei', city: 'Taipei', country: 'Taiwan', region: 'asia', channelHandle: '@JackyWuTaipei', fallbackVideoId: 'z_fY1pj1VBw' },
   { id: 'shanghai', city: 'Shanghai', country: 'China', region: 'asia', channelHandle: '@SkylineWebcams', fallbackVideoId: '76EwqI5XZIc' },
@@ -275,7 +279,26 @@ export class LiveWebcamsPanel extends Panel {
     return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&playsinline=1&rel=0`;
   }
 
-  private createIframe(feed: WebcamFeed): HTMLIFrameElement {
+  private createIframe(feed: WebcamFeed): HTMLIFrameElement | HTMLImageElement {
+    // MJPEG streams use img tag instead of iframe
+    if (feed.mjpegUrl) {
+      console.log('[LiveWebcams] Creating MJPEG stream for:', feed.city, feed.mjpegUrl);
+      const img = document.createElement('img');
+      img.className = 'webcam-iframe'; // Reuse same styling
+      img.src = feed.mjpegUrl;
+      img.alt = `${feed.city} live webcam`;
+      img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+      img.addEventListener('error', (e) => {
+        console.error('[LiveWebcams] MJPEG stream error for', feed.city, e);
+        img.alt = 'Stream unavailable';
+        img.style.background = '#000';
+      });
+      img.addEventListener('load', () => {
+        console.log('[LiveWebcams] MJPEG stream loaded for', feed.city);
+      });
+      return img as unknown as HTMLIFrameElement;
+    }
+
     const iframe = document.createElement('iframe');
     iframe.className = 'webcam-iframe';
     iframe.title = `${feed.city} live webcam`;
