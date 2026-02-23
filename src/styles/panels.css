@@ -212,8 +212,8 @@
 }
 
 .webcam-floating-container.expanded {
-  width: 900px;
-  max-width: 90vw;
+  width: 1200px;
+  max-width: 95vw;
 }
 
 .webcam-floating-header {
@@ -333,7 +333,7 @@
 
 .webcam-floating-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2px;
   width: 100%;
   height: 100%;

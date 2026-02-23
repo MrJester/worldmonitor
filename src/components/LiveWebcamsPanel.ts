@@ -216,11 +216,11 @@ export class LiveWebcamsPanel extends Panel {
     const feeds = this.filteredFeeds;
 
     if (this.isExpanded) {
-      // Show grid of cameras (2x2)
+      // Show grid of cameras (3x3 = 9 feeds)
       const grid = document.createElement('div');
       grid.className = 'webcam-floating-grid';
 
-      const displayFeeds = feeds.slice(0, 4);
+      const displayFeeds = feeds.slice(0, 9);
       displayFeeds.forEach(feed => {
         const cell = document.createElement('div');
         cell.className = 'webcam-floating-cell';
