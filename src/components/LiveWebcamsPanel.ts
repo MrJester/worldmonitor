@@ -283,14 +283,16 @@ export class LiveWebcamsPanel extends Panel {
     iframe.allowFullscreen = true;
     iframe.setAttribute('loading', 'lazy');
 
-    // Custom embeds may need more permissive settings
+    // Custom embeds need very permissive settings to work
     if (feed.customEmbedUrl) {
-      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-      iframe.referrerPolicy = 'no-referrer-when-downgrade';
-      // More permissive sandbox for custom embeds that need to make network requests
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-forms allow-popups');
+      // Maximum permissions for third-party players
+      iframe.allow = 'autoplay; camera; microphone; encrypted-media; picture-in-picture; fullscreen; geolocation';
+      // Don't restrict referrer for third-party embeds
+      iframe.referrerPolicy = 'unsafe-url';
+      // No sandbox restrictions - allow everything needed for custom players
+      // (sandbox attribute blocks cross-origin scripts which custom players need)
     } else {
-      // YouTube embeds with stricter sandbox
+      // YouTube embeds with standard security
       iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
       iframe.referrerPolicy = 'strict-origin-when-cross-origin';
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
