@@ -12,6 +12,7 @@ export interface PanelOptions {
   trackActivity?: boolean;
   infoTooltip?: string;
   onClose?: () => void;
+  onPopOut?: () => void;
 }
 
 const PANEL_SPANS_KEY = 'worldmonitor-panel-spans';
@@ -58,7 +59,9 @@ export class Panel {
   protected newBadgeEl: HTMLElement | null = null;
   protected panelId: string;
   private closeBtn: HTMLElement | null = null;
+  private popOutBtn: HTMLElement | null = null;
   private onCloseCallback: (() => void) | null = null;
+  private onPopOutCallback: (() => void) | null = null;
   private abortController: AbortController = new AbortController();
   private tooltipCloseHandler: (() => void) | null = null;
   private resizeHandle: HTMLElement | null = null;
@@ -132,6 +135,21 @@ export class Panel {
       this.header.appendChild(this.countEl);
     }
 
+    // Create pop-out button (initially hidden, will be shown when onPopOut is set)
+    this.popOutBtn = document.createElement('button');
+    this.popOutBtn.className = 'panel-popout-btn';
+    this.popOutBtn.setAttribute('aria-label', 'Pop out panel');
+    this.popOutBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M9 2L9 3L12.3 3L6 9.3L6.7 10L13 3.7L13 7L14 7L14 2L9 2ZM3 4C2.4 4 2 4.4 2 5L2 13C2 13.6 2.4 14 3 14L11 14C11.6 14 12 13.6 12 13L12 9L11 9L11 13L3 13L3 5L7 5L7 4L3 4Z"/></svg>';
+    this.popOutBtn.style.display = 'none';
+    this.popOutBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (this.onPopOutCallback) {
+        this.onPopOutCallback();
+      }
+    });
+    this.header.appendChild(this.popOutBtn);
+
     // Create close button (initially hidden, will be shown when onClose is set)
     this.closeBtn = document.createElement('button');
     this.closeBtn.className = 'panel-close-btn';
@@ -150,6 +168,11 @@ export class Panel {
     // Set initial onClose if provided
     if (options.onClose) {
       this.setOnClose(options.onClose);
+    }
+
+    // Set initial onPopOut if provided
+    if (options.onPopOut) {
+      this.setOnPopOut(options.onPopOut);
     }
 
     this.content = document.createElement('div');
@@ -501,6 +524,16 @@ export class Panel {
     this.onCloseCallback = callback;
     if (this.closeBtn) {
       this.closeBtn.style.display = 'flex';
+    }
+  }
+
+  /**
+   * Set the onPopOut callback and show the pop-out button
+   */
+  public setOnPopOut(callback: () => void): void {
+    this.onPopOutCallback = callback;
+    if (this.popOutBtn) {
+      this.popOutBtn.style.display = 'flex';
     }
   }
 }

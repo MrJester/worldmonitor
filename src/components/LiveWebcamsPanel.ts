@@ -40,7 +40,7 @@ const WEBCAM_FEEDS: WebcamFeed[] = [
   { id: 'miami', city: 'Miami', country: 'USA', region: 'americas', channelHandle: '@FloridaLiveCams', fallbackVideoId: '5YCajRjvWCg' },
   // Puerto Vallarta, Mexico - multiple beach and city views
   { id: 'puerto-vallarta-thrive', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://www.ipcamlive.com/player/player.php?alias=66a7fb01a47a4&autoplay=1' },
-  { id: 'puerto-vallarta-angelcam', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', mjpegUrl: 'https://e1-na8.angelcam.com/cameras/4919/streams/mjpeg/stream.mjpeg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NzE4MDU1MzQsIm5iZiI6MTc3MTgwNTQxNCwiZXhwIjoxNzcxODA1NjU0LCJkaWQiOiI0OTE5In0.MR_xtatc3fxX1PyEeHjsVoDv31pxiStX5nxriF8bGCo' },
+  { id: 'puerto-vallarta-daquiri-dicks', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g3.ipcamlive.com/player/player.php?alias=662abcbe448a7' },
   { id: 'puerto-vallarta-hyatt', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', channelHandle: '@WebcamsdeMexico', fallbackVideoId: 'RY3iDXftbMc' },
   { id: 'puerto-vallarta-MarinaTowers01', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g3.ipcamlive.com/player/player.php?alias=66a9467052d59' },
   { id: 'puerto-vallarta-MarinaTowers02', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g1.ipcamlive.com/player/player.php?alias=651f4ad1bab43' },
@@ -74,12 +74,40 @@ export class LiveWebcamsPanel extends Panel {
   private geographicFilter: import('@/config/geographic-regions').GeographicRegion | null = null;
 
   constructor() {
-    super({ id: 'live-webcams', title: t('panels.liveWebcams') });
+    super({
+      id: 'live-webcams',
+      title: t('panels.liveWebcams'),
+      onPopOut: () => this.openInNewWindow()
+    });
     this.element.classList.add('panel-wide');
     this.createToolbar();
     this.setupIntersectionObserver();
     this.setupIdleDetection();
     this.render();
+  }
+
+  private openInNewWindow(): void {
+    // Build URL with current webcam state
+    const baseUrl = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams();
+
+    // Set view to only show webcams panel maximized
+    params.set('panels', 'liveWebcams');
+    params.set('view', 'panel-only');
+
+    // Include current region filter if not 'all'
+    if (this.regionFilter !== 'all') {
+      params.set('webcam-region', this.regionFilter);
+    }
+
+    // Include current view mode and active feed
+    params.set('webcam-mode', this.viewMode);
+    if (this.viewMode === 'single') {
+      params.set('webcam-feed', this.activeFeed.id);
+    }
+
+    const url = `${baseUrl}?${params.toString()}`;
+    window.open(url, '_blank', 'width=1200,height=800');
   }
 
   private get filteredFeeds(): WebcamFeed[] {
