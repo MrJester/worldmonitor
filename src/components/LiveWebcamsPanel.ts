@@ -278,25 +278,36 @@ export class LiveWebcamsPanel extends Panel {
   private createIframe(feed: WebcamFeed): HTMLIFrameElement {
     const iframe = document.createElement('iframe');
     iframe.className = 'webcam-iframe';
-    iframe.src = this.buildEmbedUrl(feed);
     iframe.title = `${feed.city} live webcam`;
     iframe.allowFullscreen = true;
-    iframe.setAttribute('loading', 'lazy');
 
     // Custom embeds need very permissive settings to work
     if (feed.customEmbedUrl) {
+      console.log('[LiveWebcams] Creating custom embed iframe for:', feed.city, feed.customEmbedUrl);
       // Maximum permissions for third-party players
       iframe.allow = 'autoplay; camera; microphone; encrypted-media; picture-in-picture; fullscreen; geolocation';
       // Don't restrict referrer for third-party embeds
       iframe.referrerPolicy = 'unsafe-url';
+      // Set loading to eager for custom embeds
+      iframe.setAttribute('loading', 'eager');
       // No sandbox restrictions - allow everything needed for custom players
-      // (sandbox attribute blocks cross-origin scripts which custom players need)
+      // Add error handler
+      iframe.addEventListener('error', (e) => {
+        console.error('[LiveWebcams] Iframe error for', feed.city, e);
+      });
+      iframe.addEventListener('load', () => {
+        console.log('[LiveWebcams] Iframe loaded successfully for', feed.city);
+      });
     } else {
       // YouTube embeds with standard security
+      iframe.setAttribute('loading', 'lazy');
       iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
       iframe.referrerPolicy = 'strict-origin-when-cross-origin';
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
     }
+
+    // Set src after attributes are configured
+    iframe.src = this.buildEmbedUrl(feed);
 
     return iframe;
   }
