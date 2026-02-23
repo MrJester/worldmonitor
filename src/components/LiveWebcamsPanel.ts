@@ -98,6 +98,13 @@ export class LiveWebcamsPanel extends Panel {
     this.floatingOverlay = document.createElement('div');
     this.floatingOverlay.className = 'webcam-floating-overlay';
 
+    // Close overlay when clicking on backdrop
+    this.floatingOverlay.addEventListener('click', (e) => {
+      if (e.target === this.floatingOverlay) {
+        this.closeFloatingOverlay();
+      }
+    });
+
     const container = document.createElement('div');
     container.className = 'webcam-floating-container';
 

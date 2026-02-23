@@ -190,12 +190,10 @@
   right: 0;
   bottom: 0;
   z-index: 10000;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
 }
 
 .webcam-floating-container {
@@ -210,6 +208,7 @@
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease, height 0.3s ease;
+  z-index: 10001;
 }
 
 .webcam-floating-container.expanded {
@@ -262,6 +261,8 @@
   flex: 1;
   min-height: 400px;
   background: #000;
+  overflow: hidden;
+  border-radius: 0 0 8px 8px;
 }
 
 .webcam-floating-single {
@@ -316,7 +317,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
-  z-index: 10;
+  z-index: 100;
 }
 
 .webcam-nav-btn:hover {
