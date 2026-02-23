@@ -45,6 +45,8 @@ export interface ParsedMapUrlState {
   timeRange?: TimeRange;
   layers?: MapLayers;
   country?: string;
+  panels?: string;
+  region?: string;
 }
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -78,6 +80,12 @@ export function parseMapUrlState(
   const countryParam = params.get('country');
   const country = countryParam && /^[A-Z]{2}$/i.test(countryParam.trim()) ? countryParam.trim().toUpperCase() : undefined;
 
+  const panelsParam = params.get('panels');
+  const panels = panelsParam || undefined;
+
+  const regionParam = params.get('region');
+  const region = regionParam || undefined;
+
   const layersParam = params.get('layers');
   let layers: MapLayers | undefined;
   if (layersParam !== null) {
@@ -108,6 +116,8 @@ export function parseMapUrlState(
     timeRange,
     layers,
     country,
+    panels,
+    region,
   };
 }
 
@@ -120,6 +130,8 @@ export function buildMapUrl(
     timeRange: TimeRange;
     layers: MapLayers;
     country?: string;
+    panels?: string;
+    region?: string;
   }
 ): string {
   const url = new URL(baseUrl);
@@ -139,6 +151,14 @@ export function buildMapUrl(
 
   if (state.country) {
     params.set('country', state.country);
+  }
+
+  if (state.panels) {
+    params.set('panels', state.panels);
+  }
+
+  if (state.region) {
+    params.set('region', state.region);
   }
 
   url.search = params.toString();

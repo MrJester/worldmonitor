@@ -2509,7 +2509,7 @@ export class App {
   private applyInitialUrlState(): void {
     if (!this.initialUrlState || !this.map) return;
 
-    const { view, zoom, lat, lon, timeRange, layers } = this.initialUrlState;
+    const { view, zoom, lat, lon, timeRange, layers, panels, region } = this.initialUrlState;
 
     if (view) {
       this.map.setView(view);
@@ -2523,6 +2523,22 @@ export class App {
       this.mapLayers = layers;
       saveToStorage(STORAGE_KEYS.mapLayers, this.mapLayers);
       this.map.setLayers(layers);
+    }
+
+    // Apply panel visibility settings from URL
+    if (panels) {
+      const enabledPanelKeys = panels.split(',').filter(Boolean);
+      Object.keys(this.panelSettings).forEach(key => {
+        this.panelSettings[key]!.enabled = enabledPanelKeys.includes(key);
+      });
+      saveToStorage(STORAGE_KEYS.panels, this.panelSettings);
+      this.applyPanelSettings();
+      this.renderPanelToggles();
+    }
+
+    // Apply geographic filter from URL
+    if (region && this.geographicFilter) {
+      this.geographicFilter.setRegion(region);
     }
 
     // Only apply custom lat/lon/zoom if NO view preset is specified
@@ -2873,6 +2889,16 @@ export class App {
     const state = this.map.getState();
     const center = this.map.getCenter();
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
+
+    // Get enabled panels
+    const enabledPanels = Object.entries(this.panelSettings)
+      .filter(([_, config]) => config.enabled)
+      .map(([key]) => key)
+      .join(',');
+
+    // Get current geographic filter region ID
+    const regionId = this.currentGeographicRegion?.id;
+
     return buildMapUrl(baseUrl, {
       view: state.view,
       zoom: state.zoom,
@@ -2880,6 +2906,8 @@ export class App {
       timeRange: state.timeRange,
       layers: state.layers,
       country: this.countryBriefPage?.isVisible() ? (this.countryBriefPage.getCode() ?? undefined) : undefined,
+      panels: enabledPanels || undefined,
+      region: regionId && regionId !== 'global' ? regionId : undefined,
     });
   }
 
