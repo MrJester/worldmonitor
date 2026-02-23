@@ -45,6 +45,7 @@ const WEBCAM_FEEDS: WebcamFeed[] = [
   { id: 'puerto-vallarta-MarinaTowers01', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g3.ipcamlive.com/player/player.php?alias=66a9467052d59' },
   { id: 'puerto-vallarta-MarinaTowers02', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g1.ipcamlive.com/player/player.php?alias=651f4ad1bab43' },
   { id: 'puerto-vallarta-MarinaTowers03', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', customEmbedUrl: 'https://g3.ipcamlive.com/player/player.php?alias=656637e067099' },
+  { id: 'puerto-vallarta-velas', city: 'Puerto Vallarta', country: 'Mexico', region: 'americas', mjpegUrl: 'https://cam-vv.velasresorts.com/mjpg/video.mjpg' },
   // Asia-Pacific — Taipei first (strait hotspot), then Shanghai, Tokyo, Seoul
   { id: 'taipei', city: 'Taipei', country: 'Taiwan', region: 'asia', channelHandle: '@JackyWuTaipei', fallbackVideoId: 'z_fY1pj1VBw' },
   { id: 'shanghai', city: 'Shanghai', country: 'China', region: 'asia', channelHandle: '@SkylineWebcams', fallbackVideoId: '76EwqI5XZIc' },
