@@ -63,7 +63,7 @@ export class LiveWebcamsPanel extends Panel {
   private regionFilter: RegionFilter = 'all';
   private activeFeed: WebcamFeed = WEBCAM_FEEDS[0]!;
   private toolbar: HTMLElement | null = null;
-  private iframes: HTMLIFrameElement[] = [];
+  private iframes: (HTMLIFrameElement | HTMLImageElement)[] = [];
   private observer: IntersectionObserver | null = null;
   private isVisible = false;
   private idleTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -417,9 +417,11 @@ export class LiveWebcamsPanel extends Panel {
   }
 
   private destroyIframes(): void {
-    this.iframes.forEach(iframe => {
-      iframe.src = 'about:blank';
-      iframe.remove();
+    this.iframes.forEach(element => {
+      if (element instanceof HTMLIFrameElement) {
+        element.src = 'about:blank';
+      }
+      element.remove();
     });
     this.iframes = [];
   }
