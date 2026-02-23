@@ -2559,9 +2559,14 @@ export class App {
 
     // Apply geographic filter from URL AFTER map position is set
     // This prevents the auto-zoom in the filter change handler from overriding URL position
-    if (region && this.geographicFilter) {
-      console.log('[App] Applying geographic filter from URL:', region);
-      this.geographicFilter.setRegion(region);
+    if (region) {
+      console.log('[App] Attempting to apply geographic filter from URL:', region, 'geographicFilter exists:', !!this.geographicFilter);
+      if (this.geographicFilter) {
+        console.log('[App] Applying geographic filter from URL:', region);
+        this.geographicFilter.setRegion(region);
+      } else {
+        console.warn('[App] Geographic filter not ready yet! Will defer region application.');
+      }
     }
 
     // Sync header region selector with initial view
@@ -2798,6 +2803,14 @@ export class App {
         regionType: event.region.type
       });
     });
+
+    // Apply geographic filter from URL if needed (deferred from applyInitialUrlState)
+    if (this.initialUrlState?.region && this.geographicFilter) {
+      this.isApplyingUrlState = true;
+      console.log('[App] Applying deferred geographic filter from URL:', this.initialUrlState.region);
+      this.geographicFilter.setRegion(this.initialUrlState.region);
+      this.isApplyingUrlState = false;
+    }
 
     // Language selector
     const langSelect = document.getElementById('langSelect') as HTMLSelectElement;
